@@ -1,5 +1,3 @@
-export type TokenType = string;
-
 export type Token = [
     TokenType,
     string
@@ -39,6 +37,9 @@ const token = {
     IF: 'IF',
     ELSE: 'ELSE',
     RETURN: 'RETURN'
-};
+} as const;
+
+type Keys = keyof typeof token;
+export type TokenType = (typeof token)[Keys];
 
 export default token;
