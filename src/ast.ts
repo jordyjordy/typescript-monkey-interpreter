@@ -185,3 +185,19 @@ export class InfixExpression implements Expression {
         return `(${this.left?.string()} ${this.operator} ${this.right?.string()})`
     }
 }
+
+export class Boolean implements Expression {
+    token: Token;
+    value: boolean;
+    
+    constructor(token: Token, value: boolean) {
+        this.token = token;
+        this.value = value;
+    }
+
+    expressionNode() {}
+    
+    TokenLiteral() { return this.token[1]; }
+
+    string() { return this.token[1].toString(); }
+}

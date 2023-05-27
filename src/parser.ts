@@ -1,4 +1,4 @@
-import { Expression, ExpressionStatement, Identifier, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement } from "./ast";
+import { Boolean, Expression, ExpressionStatement, Identifier, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement } from "./ast";
 import Lexer from "./lexer";
 import token, { Token, TokenType } from "./token";
 
@@ -44,12 +44,17 @@ export class Parser {
         this.infixParseFns = {};
         this.parseIdentifier = this.parseIdentifier.bind(this);
         this.parseIntegerLiteral = this.parseIntegerLiteral.bind(this);
+        this.parseBoolean = this.parseBoolean.bind(this);
         this.parsePrefixExpression = this.parsePrefixExpression.bind(this);
         this.parseInfixExpression = this.parseInfixExpression.bind(this);
+        this.parseGroupedExpression = this.parseGroupedExpression.bind(this);
         this.registerPrefix(token.IDENT, this.parseIdentifier);
         this.registerPrefix(token.INT, this.parseIntegerLiteral);
         this.registerPrefix(token.BANG, this.parsePrefixExpression);
         this.registerPrefix(token.MINUS, this.parsePrefixExpression);
+        this.registerPrefix(token.TRUE, this.parseBoolean);
+        this.registerPrefix(token.FALSE, this.parseBoolean);
+        this.registerPrefix(token.LPAREN, this.parseGroupedExpression);
         this.registerInfix(token.PLUS, this.parseInfixExpression);
         this.registerInfix(token.MINUS, this.parseInfixExpression);
         this.registerInfix(token.SLASH, this.parseInfixExpression);
@@ -161,6 +166,19 @@ export class Parser {
             this.errors.push(`Could not parse ${this.curToken[1]} as integer`);
             return undefined;
         }
+    }
+
+    parseBoolean() {
+        return new Boolean(this.curToken, this.curTokenIs(token.TRUE));
+    }
+
+    parseGroupedExpression() {
+        this.nextToken();
+
+        const exp = this.parseExpression(LOWEST);
+        return this.expectPeek(token.RPAREN)
+            ? exp
+            : undefined
     }
 
     parsePrefixExpression() {

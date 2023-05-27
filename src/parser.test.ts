@@ -1,4 +1,4 @@
-import { Expression, ExpressionStatement, Identifier, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, ReturnStatement, Statement } from './ast';
+import { Boolean, Expression, ExpressionStatement, Identifier, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, ReturnStatement, Statement } from './ast';
 import { Lexer } from './lexer';
 import { Parser } from './parser';
 
@@ -34,6 +34,13 @@ function testIdentifier(exp: Expression, value: string) {
     expect(ident.TokenLiteral()).toEqual(value);
 }
 
+function testBooleanLiteral(exp: Expression, value: boolean) {
+    expect(exp instanceof Boolean).toBe(true);
+    const bool = exp as Boolean;
+    expect(bool.value).toEqual(value);
+    expect(bool.TokenLiteral()).toEqual(`${value}`);
+}
+
 function testLiteralExpression(exp: Expression, expected: any) {
     switch (typeof expected) {
         case 'number':
@@ -41,6 +48,9 @@ function testLiteralExpression(exp: Expression, expected: any) {
             return;
         case 'string':
             testIdentifier(exp, expected);
+            return;
+        case 'boolean':
+            testBooleanLiteral(exp, expected);
             return;
         default:
             expect('expected type').toBe(`number or string, got ${typeof expected}`);
@@ -134,9 +144,13 @@ return 993322;
     })
 
     it('handles prefix expressions', () => {
-        const prefixTests: [string, string, number][] = [
+        const prefixTests: [string, string, number|string|boolean][] = [
             ["!5", "!", 5],
-            ["-15", "-", 15]
+            ["-15", "-", 15],
+            ["!foobar;", "!", "foobar"],
+            ["-foobar;", "-", "foobar"],
+            ["!true;", "!", true],
+            ["!false;", "!", false],
         ];
 
         prefixTests.forEach(([input, prefix, literal]) => {
@@ -151,41 +165,21 @@ return 993322;
             const exp = expressionStatement.expression as PrefixExpression;
             expect(exp.operator).toEqual(prefix);
             expect(exp.right).not.toEqual(undefined);
-            testIntegerLiteral(exp.right as Expression, literal);
+            switch(typeof literal) {
+                case 'number':
+                    testIntegerLiteral(exp.right as Expression, literal);
+                    break;
+                case 'boolean':
+                    testBooleanLiteral(exp.right as Expression, literal);
+                    break;
+                case 'string':
+                    testIdentifier(exp.right as Expression, literal);
+                    break;
+            }
         })
     })
 
-    it('handles infix expressions', () => {
-        const infixTests: [string, number, string, number][] = [
-            ["5 + 5;", 5, "+", 5],
-            ["5 - 5;", 5, "-", 5],
-            ["5 * 5;", 5, "*", 5],
-            ["5 / 5;", 5, "/", 5],
-            ["5 > 5;", 5, ">", 5],
-            ["5 < 5;", 5, "<", 5],
-            ["5 == 5;", 5, "==", 5],
-            ["5 != 5;", 5, "!=", 5],
-        ]
-
-        infixTests.forEach(([input, left, operator, right]) => {
-            const lexer = new Lexer(input);
-            const parser = new Parser(lexer);
-            const program = parser.ParseProgram();
-            checkParserErrors(parser);
-            expect(program?.statements.length).toBe(1);
-            expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
-            const expressionStatement = program?.statements[0] as ExpressionStatement;
-            expect(expressionStatement.expression instanceof InfixExpression).toBe(true);
-            const exp = expressionStatement.expression as unknown as InfixExpression;
-            expect(exp.right).not.toEqual(undefined);
-            expect(exp.left).not.toEqual(undefined);
-            testIntegerLiteral(exp.left as Expression, left);
-            expect(exp.operator).toEqual(operator);
-            testIntegerLiteral(exp.right as Expression, right);
-        })
-    })
-
-    it('handles complex expressions with math', () => {
+    it('handles infix expression', () => {
         const tests:[string, any, string, any][] = [
             ["5 + 5;", 5, "+", 5],
             ["5 - 5;", 5, "-", 5],
@@ -203,6 +197,10 @@ return 993322;
             ["foobar < barfoo;", "foobar", "<", "barfoo"],
             ["foobar == barfoo;", "foobar", "==", "barfoo"],
             ["foobar != barfoo;", "foobar", "!=", "barfoo"],
+            ["true == true", true, "==", true],
+            ["true != false", true, "!=", false],
+            ["false == false", false, "==", false],
+
         ];
 
         tests.forEach(([input, left, operator, right]) => {
@@ -210,7 +208,6 @@ return 993322;
             const parser = new Parser(lexer);
             const program = parser.ParseProgram();
             checkParserErrors(parser);
-            const result = program?.string();
             expect(program?.statements.length).toBe(1);
             expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
             const exp = program?.statements[0] as ExpressionStatement;
@@ -218,4 +215,120 @@ return 993322;
             testInfixExpression(exp.expression as Expression, left, operator, right);
         })
     });
+
+    it('handles operatorPrecedence', () => {
+        const tests = [
+            [
+                "-a * b",
+                "((-a) * b)",
+            ],
+            [
+                "!-a",
+                "(!(-a))",
+            ],
+            [
+                "a + b + c",
+                "((a + b) + c)",
+            ],
+            [
+                "a + b - c",
+                "((a + b) - c)",
+            ],
+            [
+                "a * b * c",
+                "((a * b) * c)",
+            ],
+            [
+                "a * b / c",
+                "((a * b) / c)",
+            ],
+            [
+                "a + b / c",
+                "(a + (b / c))",
+            ],
+            [
+                "a + b * c + d / e - f",
+                "(((a + (b * c)) + (d / e)) - f)",
+            ],
+            [
+                "3 + 4; -5 * 5",
+                "(3 + 4)((-5) * 5)",
+            ],
+            [
+                "5 > 4 == 3 < 4",
+                "((5 > 4) == (3 < 4))",
+            ],
+            [
+                "5 < 4 != 3 > 4",
+                "((5 < 4) != (3 > 4))",
+            ],
+            [
+                "3 + 4 * 5 == 3 * 1 + 4 * 5",
+                "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+            ],
+            [
+                "true",
+                "true",
+            ],
+            [
+                "false",
+                "false",
+            ],
+            [
+                "3 > 5 == false",
+                "((3 > 5) == false)",
+            ],
+            [
+                "3 < 5 == true",
+                "((3 < 5) == true)",
+            ],
+            [
+                "1 + (2 + 3) + 4",
+                "((1 + (2 + 3)) + 4)",
+            ],
+            [
+                "(5 + 5) * 2",
+                "((5 + 5) * 2)",
+            ],
+            [
+                "2 / (5 + 5)",
+                "(2 / (5 + 5))",
+            ],
+            [
+                "(5 + 5) * 2 * (5 + 5)",
+                "(((5 + 5) * 2) * (5 + 5))",
+            ],
+            [
+                "-(5 + 5)",
+                "(-(5 + 5))",
+            ],
+            [
+                "!(true == true)",
+                "(!(true == true))",
+            ],
+            // [
+            //     "a + add(b * c) + d",
+            //     "((a + add((b * c))) + d)",
+            // ],
+            // [
+            //     "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+            //     "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+            // ],
+            // [
+            //     "add(a + b + c * d / f + g)",
+            //     "add((((a + b) + ((c * d) / f)) + g))",
+            // ],
+        ];
+
+        tests.forEach(([input, expected]) => {
+            const lexer = new Lexer(input);
+            const parser = new Parser(lexer);
+            const program = parser.ParseProgram();
+            checkParserErrors(parser);
+            const result = program?.string();
+            expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
+            const exp = program?.statements[0] as ExpressionStatement;
+            expect(result).toEqual(expected);
+        })
+    })
 })
