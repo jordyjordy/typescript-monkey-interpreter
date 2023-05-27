@@ -1,5 +1,5 @@
 import { BlockStatement, Boolean, ExpressionStatement, IfExpression, InfixExpression, IntegerLiteral, Node, PrefixExpression, Program, ReturnStatement, Statement } from "./ast";
-import { Bool, INTEGER_OBJ, Integer, Null, Obj, ReturnValue } from "./object";
+import { Bool, INTEGER_OBJ, Integer, Null, Obj, RETURN_VALUE_OBJ, ReturnValue } from "./object";
 
 export const TRUE = new Bool(true);
 export const FALSE = new Bool(false);
@@ -14,7 +14,7 @@ export function Eval(node: Node): Obj | undefined {
         case ExpressionStatement:
             return Eval((node as ExpressionStatement).expression as Node);
         case Program:
-            return EvalStatements((node as Program).statements);
+            return evalProgram((node as Program));
         case PrefixExpression: {
             const right = Eval((node as PrefixExpression).right!);
             return evalPrefixExpression((node as PrefixExpression).operator, right);
@@ -26,7 +26,7 @@ export function Eval(node: Node): Obj | undefined {
             return evalInfixExpression(infix.operator, left as Obj, right as Obj);
         }
         case BlockStatement: {
-            return EvalStatements((node as BlockStatement).statements);
+            return evalBlockStatement((node as BlockStatement));
         }
         case IfExpression: {
             return evalIfExpression(node as IfExpression);
@@ -67,6 +67,33 @@ function EvalStatements(statements: Statement[]): Obj | undefined {
             return (result as ReturnValue).value;
         }
     }
+    return result;
+}
+
+function evalProgram(program: Program): Obj | undefined {
+    let result: Obj | undefined;
+
+    for(let i = 0; i < program.statements.length; i++) {
+        const statement = program.statements[i]
+        result = Eval(statement);
+        if(result instanceof ReturnValue) {
+            return (result as ReturnValue).value;
+        }
+    }
+    return result;
+}
+
+function evalBlockStatement(block: BlockStatement): Obj | undefined {
+    let result: Obj | undefined;
+
+    for(let i = 0; i < block.statements.length; i++) {
+        const statement = block.statements[i];
+        result = Eval(statement);
+        if(result !== undefined && result.type() == RETURN_VALUE_OBJ) {
+            return result;
+        }
+    }
+
     return result;
 }
 
