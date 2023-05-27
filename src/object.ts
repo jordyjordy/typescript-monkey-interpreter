@@ -5,7 +5,7 @@ const INTEGER_OBJ = "INTEGER";
 const BOOLEAN_OBJ = "BOOLEAN";
 const NULL_OBJ = "NULL";
 const RETURN_VALUE_OBJ = "RETURN_VALUE";
-
+const ERROR_OBJ = 'ERROR';
 export interface Obj {
     type: () => ObjectType;
     inspect: () => string;
@@ -67,13 +67,31 @@ class ReturnValue implements Obj {
     }
 }
 
+class InterpretError implements Obj {
+    message: string
+
+    constructor(message: string) {
+        this.message = message;
+    }
+
+    type() {
+        return ERROR_OBJ;
+    }
+
+    inspect() {
+        return `ERROR: ${this.message}`;
+    }
+}
+
 export {
     Integer,
     Null,
     Bool,
     ReturnValue,
+    InterpretError,
     INTEGER_OBJ,
     NULL_OBJ,
     BOOLEAN_OBJ,
     RETURN_VALUE_OBJ,
+    ERROR_OBJ,
 }

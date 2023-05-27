@@ -1,5 +1,5 @@
 import Lexer from './lexer';
-import { Bool, Integer, Obj } from './object';
+import { Bool, Integer, InterpretError, Obj } from './object';
 import { Eval, NULL } from './evaluator';
 import { Parser } from './parser';
 import { Node } from './ast';
@@ -112,6 +112,52 @@ describe('evaluator tests', () => {
         tests.forEach(([input, expected]) => {
             const evaluated = testEval(input);
             testIntegerObject(evaluated, expected);
+        });
+    })
+
+    test('error handling', () => {
+        const tests: [string, string][] = [
+            [
+            "5 + true;",
+            "type mismatch: INTEGER + BOOLEAN",
+            ],
+            [
+            "5 + true; 5;",
+            "type mismatch: INTEGER + BOOLEAN",
+            ],
+            [
+            "-true",
+            "unknown operator: -BOOLEAN",
+            ],
+            [
+            "true + false;",
+            "unknown operator: BOOLEAN + BOOLEAN",
+            ],
+            [
+            "5; true + false; 5",
+            "unknown operator: BOOLEAN + BOOLEAN",
+            ],
+            [
+            "if (10 > 1) { true + false; }",
+            "unknown operator: BOOLEAN + BOOLEAN",
+            ],
+            [
+            `
+            if (10 > 1) {
+            if (10 > 1) {
+            return true + false;
+            }
+            return 1;
+            }
+            `,
+            "unknown operator: BOOLEAN + BOOLEAN",
+            ],
+        ];
+        tests.forEach(([input, expected]) => {
+            const evaluated = testEval(input);
+            expect(evaluated instanceof InterpretError).toBe(true);
+            const errObj = evaluated as InterpretError;
+            expect(errObj.message).toEqual(expected);
         });
     })
 
