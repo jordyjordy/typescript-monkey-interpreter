@@ -1,6 +1,7 @@
 import Lexer from "./lexer";
 import { Parser } from "./parser";
-import token, { Token } from "./token";
+import { Eval } from "./evaluator";
+import { Program } from "./ast";
 
 const prompt =">> ";
 const MONKEY_FACE = `            __,__
@@ -33,9 +34,13 @@ function start() {
             process.stderr.write('Whoops we ran into some monkey business here!\n');
             process.stderr.write(' parser errors:\n');
             process.stderr.write(`\t- ${parser.errors.join('\n\t- ')}\n`);
+            process.stdout.write(`\n${prompt}`);
             return;
         }
-        process.stdout.write(program?.string() ?? '');
+        const evaluated = Eval(program as Program);
+        if(evaluated) {
+            process.stdout.write(evaluated.inspect());
+        }
         process.stdout.write(`\n${prompt}`);
     })
 };
