@@ -1,5 +1,5 @@
 import Lexer from './lexer';
-import { Bool, Integer, InterpretError, Obj } from './object';
+import { Bool, Function, Integer, InterpretError, Obj } from './object';
 import { Eval, NULL } from './evaluator';
 import { Parser } from './parser';
 import { Node } from './ast';
@@ -173,6 +173,34 @@ describe('evaluator tests', () => {
             ["let a = 5; let b = a; b;", 5],
             ["let a = 5; let b = a; let c = a + b + 5; c;", 15],
         ];
+
+        tests.forEach(([input, expected]) => {
+            const evaluated = testEval(input);
+            testIntegerObject(evaluated, expected);
+        });
+    })
+
+    test('function object', () => {
+        const input = "fn(x) { x + 2; };"
+        const evaluated = testEval(input);
+
+        expect(evaluated instanceof Function).toBe(true);
+        const func = evaluated as Function;
+        expect(func.parameters.length).toEqual(1);
+        expect(func.parameters[0].string()).toEqual('x');
+
+        expect(func.body.string()).toEqual('(x + 2)');
+    })
+
+    test('function application', () => {
+        const tests: [string, number][] = [
+            ["let identity = fn(x) { x; }; identity(5);", 5],
+            ["let identity = fn(x) { return x; }; identity(5);", 5],
+            ["let double = fn(x) { x * 2; }; double(5);", 10],
+            ["let add = fn(x, y) { x + y; }; add(5, 5);", 10],
+            ["let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20],
+            ["fn(x) { x; }(5)", 5],
+        ]
 
         tests.forEach(([input, expected]) => {
             const evaluated = testEval(input);

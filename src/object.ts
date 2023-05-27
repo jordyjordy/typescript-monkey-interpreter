@@ -1,3 +1,5 @@
+import { BlockStatement, Identifier } from "./ast";
+import Environment from "./environment";
 
 type ObjectType = string;
 
@@ -6,6 +8,8 @@ const BOOLEAN_OBJ = "BOOLEAN";
 const NULL_OBJ = "NULL";
 const RETURN_VALUE_OBJ = "RETURN_VALUE";
 const ERROR_OBJ = 'ERROR';
+const FUNCTION_OBJ = 'FUNCTION';
+
 export interface Obj {
     type: () => ObjectType;
     inspect: () => string;
@@ -83,15 +87,38 @@ class InterpretError implements Obj {
     }
 }
 
+class Function implements Obj {
+    parameters: Identifier[];
+    body: BlockStatement;
+    env: Environment;
+
+    constructor(parameters: Identifier[], body: BlockStatement, env: Environment) {
+        this.parameters = parameters;
+        this.body = body;
+        this.env = env;
+    }
+
+    type() {
+        return FUNCTION_OBJ;
+    }
+
+    inspect() {
+        const params = this.parameters.map((param) => param.string()).join(', ');
+        return `fn(${params}){\n${this.body.string()}\n}`;
+    }
+}
+
 export {
     Integer,
     Null,
     Bool,
     ReturnValue,
     InterpretError,
+    Function,
     INTEGER_OBJ,
     NULL_OBJ,
     BOOLEAN_OBJ,
     RETURN_VALUE_OBJ,
     ERROR_OBJ,
+    FUNCTION_OBJ,
 }

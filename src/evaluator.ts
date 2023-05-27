@@ -1,6 +1,6 @@
-import { BlockStatement, Boolean, ExpressionStatement, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, Node, PrefixExpression, Program, ReturnStatement, Statement } from "./ast";
-import Environment from "./environment";
-import { Bool, ERROR_OBJ, INTEGER_OBJ, Integer, InterpretError, Null, Obj, RETURN_VALUE_OBJ, ReturnValue } from "./object";
+import { BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, Node, PrefixExpression, Program, ReturnStatement, Statement } from "./ast";
+import Environment, { newEnclosedEnvironment } from "./environment";
+import { Bool, ERROR_OBJ, Function, INTEGER_OBJ, Integer, InterpretError, Null, Obj, RETURN_VALUE_OBJ, ReturnValue } from "./object";
 
 export const TRUE = new Bool(true);
 export const FALSE = new Bool(false);
@@ -55,10 +55,27 @@ export function Eval(node: Node, env: Environment): Obj | undefined {
                 return value;
             }
             env.set(letNode.name?.value!, value!);
-            break;
+            return;
         }
         case Identifier: {
             return evalIdentifier(node as Identifier, env)
+        }
+        case FunctionLiteral: {
+            const func = node as FunctionLiteral;
+            const params = func.parameters;
+            const body = func.body;
+            return new Function(params!, body!, env);
+        }
+        case CallExpression: {
+            const func = Eval((node as CallExpression).func!, env);
+            if(isError(func)) {
+                return func;
+            }
+            const args = evalExpressions((node as CallExpression).functionArguments!, env);
+            if(args.length === 1 && isError(args[0])) {
+                return args[0];
+            }
+            return applyFunction(func!, args!);
         }
         default:
             return undefined;
@@ -212,4 +229,39 @@ function evalIdentifier(node: Identifier, env: Environment) {
         return newError(`identifier not found: ${node.value}`);
     }
     return val;
+}
+
+function evalExpressions(exps: (Expression | undefined)[], env: Environment) {
+    let res: Obj[] = [];
+    for(let i = 0; i < exps.length; i++) {
+        const evaluated = Eval(exps[i]!, env);
+        if(isError(evaluated)) {
+            return [evaluated];
+        }
+        res.push(evaluated!);
+    }
+    return res;
+}
+
+function applyFunction(fn: Obj, args: (Obj |undefined)[]) {
+    if(!(fn instanceof Function)) {
+        return newError(`not a function: ${fn.type()}`)
+    }
+    const extendedEnv = extendFunctionEnv(fn, args);
+    const evaluated = Eval(fn.body, extendedEnv);
+    return unwrapReturnValue(evaluated!);
+}
+
+function extendFunctionEnv(fn: Function, args: (Obj|undefined)[]) {
+    const env = newEnclosedEnvironment(fn.env);
+    fn.parameters.forEach((param, index) => {
+        env.set(param.value, args[index]!);
+    })
+    return env;
+}
+
+function unwrapReturnValue(object: Obj): Obj {
+    return object instanceof ReturnValue
+        ? (object as ReturnValue).value
+        : object;
 }
