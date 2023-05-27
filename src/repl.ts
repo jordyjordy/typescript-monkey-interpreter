@@ -2,6 +2,7 @@ import Lexer from "./lexer";
 import { Parser } from "./parser";
 import { Eval } from "./evaluator";
 import { Program } from "./ast";
+import Environment from "./environment";
 
 const prompt =">> ";
 const MONKEY_FACE = `            __,__
@@ -18,6 +19,7 @@ const MONKEY_FACE = `            __,__
 `
 
 function start() {
+    const env = new Environment();
     process.stdin.resume();
     process.stdin.setEncoding('utf-8');
     process.stdout.write(prompt);
@@ -37,11 +39,13 @@ function start() {
             process.stdout.write(`\n${prompt}`);
             return;
         }
-        const evaluated = Eval(program as Program);
+        const evaluated = Eval(program as Program, env);
         if(evaluated) {
             process.stdout.write(evaluated.inspect());
+            process.stdout.write(`\n${prompt}`);
+        } else {
+            process.stdout.write(prompt);
         }
-        process.stdout.write(`\n${prompt}`);
     })
 };
 

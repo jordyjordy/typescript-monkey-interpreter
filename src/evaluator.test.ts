@@ -3,6 +3,7 @@ import { Bool, Integer, InterpretError, Obj } from './object';
 import { Eval, NULL } from './evaluator';
 import { Parser } from './parser';
 import { Node } from './ast';
+import Environment from './environment';
 
 describe('evaluator tests', () => {
     test('eval integer expression', () => {
@@ -152,6 +153,10 @@ describe('evaluator tests', () => {
             `,
             "unknown operator: BOOLEAN + BOOLEAN",
             ],
+            [
+                'foobar',
+                "identifier not found: foobar",
+            ],
         ];
         tests.forEach(([input, expected]) => {
             const evaluated = testEval(input);
@@ -161,13 +166,27 @@ describe('evaluator tests', () => {
         });
     })
 
+    test('let statements', () => {
+        const tests: [string, number][] = [
+            ["let a = 5; a;", 5],
+            ["let a = 5 * 5; a;", 25],
+            ["let a = 5; let b = a; b;", 5],
+            ["let a = 5; let b = a; let c = a + b + 5; c;", 15],
+        ];
+
+        tests.forEach(([input, expected]) => {
+            const evaluated = testEval(input);
+            testIntegerObject(evaluated, expected);
+        });
+    })
 })
 
 function testEval(input: string): Obj | undefined {
     const lexer = new Lexer(input);
     const parser = new Parser(lexer);
     const program = parser.ParseProgram();
-    return Eval(program as Node);
+    const env: Environment = new Environment();
+    return Eval(program as Node, env);
 }
 
 function testIntegerObject(object: Obj | undefined, expected: number) {
