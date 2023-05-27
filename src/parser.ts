@@ -1,4 +1,4 @@
-import { Boolean, Expression, ExpressionStatement, Identifier, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement } from "./ast";
+import { BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement } from "./ast";
 import Lexer from "./lexer";
 import token, { Token, TokenType } from "./token";
 
@@ -24,6 +24,7 @@ const precedences: Partial<Record<TokenType, number>> = {
     [token.MINUS]: SUM,
     [token.SLASH]: PRODUCT,
     [token.ASTERISK]: PRODUCT,
+    [token.LPAREN]: CALL,
 };
 
 export class Parser {
@@ -48,6 +49,13 @@ export class Parser {
         this.parsePrefixExpression = this.parsePrefixExpression.bind(this);
         this.parseInfixExpression = this.parseInfixExpression.bind(this);
         this.parseGroupedExpression = this.parseGroupedExpression.bind(this);
+        this.parseIfExpression = this.parseIfExpression.bind(this);
+        this.parseBlockStatement = this.parseBlockStatement.bind(this);
+        this.parseFunctionLiteral = this.parseFunctionLiteral.bind(this);
+        this.parseFunctionParameters = this.parseFunctionParameters.bind(this);
+        this.parseCallExpression = this.parseCallExpression.bind(this);
+        this.parseCallArguments = this.parseCallArguments.bind(this);
+
         this.registerPrefix(token.IDENT, this.parseIdentifier);
         this.registerPrefix(token.INT, this.parseIntegerLiteral);
         this.registerPrefix(token.BANG, this.parsePrefixExpression);
@@ -55,6 +63,8 @@ export class Parser {
         this.registerPrefix(token.TRUE, this.parseBoolean);
         this.registerPrefix(token.FALSE, this.parseBoolean);
         this.registerPrefix(token.LPAREN, this.parseGroupedExpression);
+        this.registerPrefix(token.FUNCTION, this.parseFunctionLiteral);
+        this.registerPrefix(token.IF, this.parseIfExpression);
         this.registerInfix(token.PLUS, this.parseInfixExpression);
         this.registerInfix(token.MINUS, this.parseInfixExpression);
         this.registerInfix(token.SLASH, this.parseInfixExpression);
@@ -63,6 +73,7 @@ export class Parser {
         this.registerInfix(token.NEQ, this.parseInfixExpression);
         this.registerInfix(token.LT, this.parseInfixExpression);
         this.registerInfix(token.GT, this.parseInfixExpression);
+        this.registerInfix(token.LPAREN, this.parseCallExpression);
         this.nextToken();
     }
 
@@ -179,6 +190,109 @@ export class Parser {
         return this.expectPeek(token.RPAREN)
             ? exp
             : undefined
+    }
+
+    parseIfExpression() {
+        const expression = new IfExpression(this.curToken);
+        if(!this.expectPeek(token.LPAREN)) {
+            return undefined;
+        }
+        this.nextToken();
+        expression.condition = this.parseExpression(LOWEST);
+
+        if(!this.expectPeek(token.RPAREN)) {
+            return undefined;
+        }
+        if(!this.expectPeek(token.LBRACE)) {
+            return undefined;
+        }
+
+        expression.consequence = this.parseBlockStatement();
+
+        if(this.peekTokenIs(token.ELSE)) {
+            this.nextToken();
+            if(!this.expectPeek(token.LBRACE)) {
+                return undefined;
+            }
+            expression.alternative = this.parseBlockStatement();
+        }
+        return expression;
+    }
+
+    parseBlockStatement() {
+        const block = new BlockStatement(this.curToken);
+        this.nextToken();
+        while(!this.curTokenIs(token.RBRACE) && !this.curTokenIs(token.EOF)) {
+            const statement = this.parseStatement();
+            if(statement !== undefined) {
+                block.statements.push(statement);
+            }
+            this.nextToken();
+        }
+        return block;
+    }
+
+    parseFunctionLiteral() {
+        const funcLit = new FunctionLiteral(this.curToken);
+        if(!this.expectPeek(token.LPAREN)) {
+            return undefined;
+        }
+        funcLit.parameters = this.parseFunctionParameters();
+
+        if(!this.expectPeek(token.LBRACE)) {
+            return undefined;
+        }
+        funcLit.body = this.parseBlockStatement();
+
+        return funcLit;
+    }
+
+    parseFunctionParameters() {
+        const identifiers: Identifier[] = [];
+        if(this.peekTokenIs(token.RPAREN)) {
+            this.nextToken();
+            return identifiers;
+        }
+        this.nextToken();
+        const identifier = new Identifier(this.curToken, this.curToken[1]);
+        identifiers.push(identifier);
+        while(this.peekTokenIs(token.COMMA)) {
+            this.nextToken();
+            this.nextToken();
+            const identifier = new Identifier(this.curToken, this.curToken[1]);
+            identifiers.push(identifier);
+        }
+
+        if(!this.expectPeek(token.RPAREN)) {
+            return undefined;
+        }
+        return identifiers;
+    }
+
+    parseCallExpression(func: Expression | undefined): Expression {
+        const exp = new CallExpression(this.curToken, func);
+        exp.functionArguments = this.parseCallArguments();
+        return exp;
+    }
+
+    parseCallArguments() {
+        const args: (Expression | undefined)[] = [];
+        if(this.peekTokenIs(token.RPAREN)) {
+            this.nextToken();
+            return args;
+        }
+
+        this.nextToken();
+        args.push(this.parseExpression(LOWEST));
+        while(this.peekTokenIs(token.COMMA)) {
+            this.nextToken();
+            this.nextToken();
+            args.push(this.parseExpression(LOWEST));
+        }
+        if(!this.expectPeek(token.RPAREN)) {
+            return [];
+        }
+        return args;
     }
 
     parsePrefixExpression() {

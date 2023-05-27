@@ -201,3 +201,80 @@ export class Boolean implements Expression {
 
     string() { return this.token[1].toString(); }
 }
+
+export class IfExpression implements Expression {
+    token: Token;
+    condition?: Expression;
+    consequence?: BlockStatement;
+    alternative?: BlockStatement;
+
+    constructor(token: Token) {
+        this.token = token;
+    }
+
+    expressionNode() {}
+
+    TokenLiteral() { return this.token[1]; }
+
+    string() {
+        return `if${this.condition?.string() ?? ''} ${this.consequence?.string() ?? ''}`
+        + `${this.alternative ? `else ${this.alternative.string()}` : ''}`
+    }
+}
+
+export class BlockStatement implements Statement {
+    token: Token;
+    statements: Statement[];
+
+    constructor(token: Token, statements: Statement[] = []) {
+        this.token = token;
+        this.statements = statements;
+    }
+
+    statementNode() {}
+
+    TokenLiteral() { return this.token[1]; }
+
+    string() {
+        return this.statements.map((statement) => statement.string()).join('');
+    }
+}
+
+export class FunctionLiteral implements Expression {
+    token: Token;
+    parameters?: Identifier[];
+    body?: BlockStatement;
+
+    constructor(token: Token) {
+        this.token = token;
+    }
+
+    expressionNode() {}
+
+    TokenLiteral() { return this.token[1]; }
+
+    string() {
+        const params = this.parameters?.map((param) => param.string()).join(', ');
+        return `${this.TokenLiteral()}(${params})${this.body?.string() ?? ''}`;
+    }
+}
+
+export class CallExpression implements Expression {
+    token: Token;
+    func?: Expression;
+    functionArguments: (Expression | undefined)[];
+    constructor(token: Token, func?: Expression, functionArguments: (Expression | undefined)[] = []) {
+        this.token = token;
+        this.func = func;
+        this.functionArguments = functionArguments;
+    }
+
+    expressionNode() {}
+
+    TokenLiteral() { return this.token[1]; }
+    
+    string() {
+        const args = (this.functionArguments ?? []).map((arg) => arg?.string() ?? '??').join(', ');
+        return `${this.func?.string() ?? '??'}(${args})`;
+    }
+}
