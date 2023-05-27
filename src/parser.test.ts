@@ -440,4 +440,25 @@ return 993322;
         testInfixExpression(call.functionArguments[1] as Expression, 2, "*", 3);
         testInfixExpression(call.functionArguments[2] as Expression, 4, "+", 5);
     })
+
+    it('parses let statements', () => {
+        const tests: [string, string, any][] = [
+            ["let x = 5;", "x", 5],
+            ["let y = true;", "y", true],
+            ["let foobar = y;", "foobar", "y"],
+        ];
+
+        tests.forEach(([input, identifier, expected]) => {
+            const lexer = new Lexer(input);
+            const parser = new Parser(lexer);
+            const program = parser.ParseProgram();
+            checkParserErrors(parser);
+
+            expect(program?.statements.length).toBe(1);
+            expect(program?.statements[0] instanceof LetStatement).toBe(true);
+            const statement = program?.statements[0] as LetStatement;
+            testLetStatement(statement, identifier);
+            testLiteralExpression(statement.value as Expression, expected);
+        })
+    })
 })

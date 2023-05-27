@@ -118,9 +118,14 @@ export class Parser {
             return undefined;
         }
 
-        while(!this.curTokenIs(token.SEMICOLON)) {
+        this.nextToken();
+
+        statement.value = this.parseExpression(LOWEST);
+
+        if(this.peekTokenIs(token.SEMICOLON)) {
             this.nextToken();
         }
+
         return statement;
     }
 
@@ -129,7 +134,9 @@ export class Parser {
 
         this.nextToken();
 
-        while(!this.curTokenIs(token.SEMICOLON)) {
+        statement.returnValue = this.parseExpression(LOWEST);
+
+        if(this.peekTokenIs(token.SEMICOLON)) {
             this.nextToken();
         }
 
