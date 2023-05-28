@@ -11,7 +11,7 @@ const ERROR_OBJ = 'ERROR';
 const FUNCTION_OBJ = 'FUNCTION';
 const STRING_OBJ = 'STRING';
 const BUILTIN_OBJ = 'BUILTIN';
-
+const ARRAY_OBJ = 'ARRAY';
 export interface Obj {
     type: () => ObjectType;
     inspect: () => string;
@@ -140,6 +140,18 @@ class BuiltIn implements Obj {
     }
 }
 
+class ArrayLiteral implements Obj {
+    elements: Obj[];
+    constructor(elements: Obj[] = []) {
+        this.elements = elements;
+    }
+    type() { return  ARRAY_OBJ };
+
+    inspect() {
+        return `[${this.elements.map((el) => el.inspect()).join(', ')}]`;
+    }
+}
+
 export {
     Integer,
     Null,
@@ -149,6 +161,7 @@ export {
     Function,
     String,
     BuiltIn,
+    ArrayLiteral,
     INTEGER_OBJ,
     NULL_OBJ,
     BOOLEAN_OBJ,
@@ -157,4 +170,5 @@ export {
     FUNCTION_OBJ,
     STRING_OBJ,
     BUILTIN_OBJ,
+    ARRAY_OBJ,
 }

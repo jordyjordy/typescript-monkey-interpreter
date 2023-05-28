@@ -279,6 +279,44 @@ export class StringLiteral implements Expression {
     }
 }
 
+export class ArrayLiteral implements Expression {
+    token: Token
+    elements: (Expression | undefined)[];
+    constructor(token: Token) {
+        this.token = token;
+        this.elements = [];
+    }
+
+    expressionNode() {}
+
+    TokenLiteral() {
+        return this.token[1];
+    }
+    
+    string() {
+        return `[${this.elements.map((el) => el?.string() ?? '??').join(', ')}]`;
+    }
+}
+
+export class IndexExpression implements Expression {
+    token :Token;
+    left: Expression;
+    index: Expression | undefined;
+    
+    constructor(token: Token, left: Expression) {
+        this.token = token;
+        this.left = left;
+    }
+
+    expressionNode() {}
+
+    TokenLiteral() { return this.token[1]; };
+
+    string() {
+        return `(${this.left.string()}[${this.index?.string() ?? '??'}])`
+    }
+}
+
 export class CallExpression implements Expression {
     token: Token;
     func?: Expression;

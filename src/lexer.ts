@@ -144,6 +144,12 @@ export class Lexer {
             case '}':
                 tok = [token.RBRACE, this.ch];
                 break;
+            case '[':
+                tok = [token.LBRACKET, this.ch];
+                break;
+            case ']':
+                tok = [token.RBRACKET, this.ch];
+                break;
             case '"':
                 tok = [token.STRING, this.readString()];
                 break;

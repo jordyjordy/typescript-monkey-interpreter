@@ -1,4 +1,4 @@
-import { BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement, StringLiteral } from "./ast";
+import { ArrayLiteral, BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, IndexExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement, StringLiteral } from "./ast";
 import Lexer from "./lexer";
 import token, { Token, TokenType } from "./token";
 
@@ -13,6 +13,7 @@ const SUM = 3;
 const PRODUCT = 4;
 const PREFIX = 5;
 const CALL = 6;
+const INDEX = 7;
 
 
 const precedences: Partial<Record<TokenType, number>> = {
@@ -25,6 +26,7 @@ const precedences: Partial<Record<TokenType, number>> = {
     [token.SLASH]: PRODUCT,
     [token.ASTERISK]: PRODUCT,
     [token.LPAREN]: CALL,
+    [token.LBRACKET]: INDEX,
 };
 
 export class Parser {
@@ -54,9 +56,10 @@ export class Parser {
         this.parseFunctionLiteral = this.parseFunctionLiteral.bind(this);
         this.parseFunctionParameters = this.parseFunctionParameters.bind(this);
         this.parseCallExpression = this.parseCallExpression.bind(this);
-        this.parseCallArguments = this.parseCallArguments.bind(this);
+        this.parseExpressionList = this.parseExpressionList.bind(this);
         this.parseStringLiteral = this.parseStringLiteral.bind(this);
-
+        this.parseArrayLiteral = this.parseArrayLiteral.bind(this);
+        this.parseIndexExpression = this.parseIndexExpression.bind(this);
         this.registerPrefix(token.IDENT, this.parseIdentifier);
         this.registerPrefix(token.INT, this.parseIntegerLiteral);
         this.registerPrefix(token.BANG, this.parsePrefixExpression);
@@ -67,6 +70,7 @@ export class Parser {
         this.registerPrefix(token.FUNCTION, this.parseFunctionLiteral);
         this.registerPrefix(token.IF, this.parseIfExpression);
         this.registerPrefix(token.STRING, this.parseStringLiteral);
+        this.registerPrefix(token.LBRACKET, this.parseArrayLiteral);
         this.registerInfix(token.PLUS, this.parseInfixExpression);
         this.registerInfix(token.MINUS, this.parseInfixExpression);
         this.registerInfix(token.SLASH, this.parseInfixExpression);
@@ -76,6 +80,7 @@ export class Parser {
         this.registerInfix(token.LT, this.parseInfixExpression);
         this.registerInfix(token.GT, this.parseInfixExpression);
         this.registerInfix(token.LPAREN, this.parseCallExpression);
+        this.registerInfix(token.LBRACKET, this.parseIndexExpression);
         this.nextToken();
     }
 
@@ -232,6 +237,24 @@ export class Parser {
         return expression;
     }
 
+    parseIndexExpression(left: Expression | undefined) {
+        if(!left) {
+            return undefined;
+        }
+        const expression = new IndexExpression(this.curToken, left);
+
+        this.nextToken();
+
+        const right = this.parseExpression(LOWEST);
+
+        expression.index = right;
+
+        if(!this.expectPeek(token.RBRACKET)) {
+            return undefined;
+        }
+        return expression;
+    }
+
     parseBlockStatement() {
         const block = new BlockStatement(this.curToken);
         this.nextToken();
@@ -260,6 +283,12 @@ export class Parser {
         return funcLit;
     }
 
+    parseArrayLiteral() {
+        const arrayLit = new ArrayLiteral(this.curToken);
+        arrayLit.elements = this.parseExpressionList(token.RBRACKET);
+        return arrayLit;
+    }
+
     parseFunctionParameters() {
         const identifiers: Identifier[] = [];
         if(this.peekTokenIs(token.RPAREN)) {
@@ -284,13 +313,13 @@ export class Parser {
 
     parseCallExpression(func: Expression | undefined): Expression {
         const exp = new CallExpression(this.curToken, func);
-        exp.functionArguments = this.parseCallArguments();
+        exp.functionArguments = this.parseExpressionList(token.RPAREN);
         return exp;
     }
 
-    parseCallArguments() {
+    parseExpressionList(end: TokenType) {
         const args: (Expression | undefined)[] = [];
-        if(this.peekTokenIs(token.RPAREN)) {
+        if(this.peekTokenIs(end)) {
             this.nextToken();
             return args;
         }
@@ -302,7 +331,7 @@ export class Parser {
             this.nextToken();
             args.push(this.parseExpression(LOWEST));
         }
-        if(!this.expectPeek(token.RPAREN)) {
+        if(!this.expectPeek(end)) {
             return [];
         }
         return args;

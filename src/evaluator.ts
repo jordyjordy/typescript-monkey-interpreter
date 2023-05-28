@@ -1,7 +1,7 @@
-import { BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, Node, PrefixExpression, Program, ReturnStatement, Statement, StringLiteral } from "./ast";
+import { BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, Node, PrefixExpression, Program, ReturnStatement, Statement, StringLiteral, ArrayLiteral as AstArrayLiteral, IndexExpression } from "./ast";
 import builtins from "./builtins";
 import Environment, { newEnclosedEnvironment } from "./environment";
-import { Bool, BuiltIn, ERROR_OBJ, Function, INTEGER_OBJ, Integer, InterpretError, Null, Obj, RETURN_VALUE_OBJ, ReturnValue, STRING_OBJ, String } from "./object";
+import { ARRAY_OBJ, ArrayLiteral, Bool, BuiltIn, ERROR_OBJ, Function, INTEGER_OBJ, Integer, InterpretError, Null, Obj, RETURN_VALUE_OBJ, ReturnValue, STRING_OBJ, String } from "./object";
 
 export const TRUE = new Bool(true);
 export const FALSE = new Bool(false);
@@ -81,6 +81,21 @@ export function Eval(node: Node, env: Environment): Obj {
         case StringLiteral: {
             const str = node  as StringLiteral;
             return new String(str.value);
+        }
+        case AstArrayLiteral: {
+            const arr = node as AstArrayLiteral;
+            const values = evalExpressions(arr.elements, env);
+            if(values.length === 1 && isError(values[0])) {
+                return values[0];
+            }
+            return new ArrayLiteral(values);
+        }
+        case IndexExpression: {
+            const index = node as IndexExpression;
+            const left = Eval(index.left, env);
+            const indexObj = Eval(index.index as Expression, env);
+            
+            return evalIndexExpression(left, indexObj);
         }
         default:
             return NULL;
@@ -258,6 +273,22 @@ function evalStringInfixExpression(operator: string, left: String, right: String
         return new String(left.value + right.value);
     }
     return newError(`unknown operator: ${left.type()} ${operator} ${right.type()}`);
+}
+
+function evalIndexExpression(left: Obj, right: Obj) {
+    switch(true) {
+        case left.type() === ARRAY_OBJ && right.type() === INTEGER_OBJ:
+            return evalArrayIndexExpression(left as ArrayLiteral, right as Integer);
+        default:
+            return newError(`index operator not support: ${left.type()}`);
+    }
+}
+
+function evalArrayIndexExpression(left: ArrayLiteral, index: Integer): Obj {
+    if(index.value >= left.elements.length || index.value < 0) {
+        return NULL;
+    }
+    return left.elements[index.value];
 }
 
 function applyFunction(fn: Obj, args: Obj[]) {

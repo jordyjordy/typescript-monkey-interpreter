@@ -1,5 +1,5 @@
 import Lexer from './lexer';
-import { Bool, Function, Integer, InterpretError, Obj, String } from './object';
+import { ArrayLiteral, Bool, Function, Integer, InterpretError, Obj, String } from './object';
 import { Eval, NULL } from './evaluator';
 import { Parser } from './parser';
 import { Node } from './ast';
@@ -59,7 +59,7 @@ describe('evaluator tests', () => {
     })
 
     test('eval bang operator', () => {
-        const tests: [string,boolean][] = [
+        const tests: [string, boolean][] = [
             ["!true", false],
             ["!false", true],
             ["!5", false],
@@ -85,7 +85,7 @@ describe('evaluator tests', () => {
         ]
         tests.forEach(([input, expected]) => {
             const evaluated = testEval(input);
-            if(expected) {
+            if (expected) {
                 testIntegerObject(evaluated, expected);
             } else {
                 testNullObject(evaluated);
@@ -94,13 +94,13 @@ describe('evaluator tests', () => {
     })
 
     test('return statements', () => {
-        const tests:[string, number][] = [
+        const tests: [string, number][] = [
             ["return 10;", 10],
             ["return 10; 9;", 10],
             ["return 2 * 5; 9;", 10],
             ["9; return 2 * 5; 9;", 10],
             [
-                 `if (10 > 1) {
+                `if (10 > 1) {
     if (10 > 1) {
         return 10;
     }
@@ -108,7 +108,7 @@ describe('evaluator tests', () => {
 }
                 `,
                 10,
-            ],    
+            ],
         ];
         tests.forEach(([input, expected]) => {
             const evaluated = testEval(input);
@@ -119,31 +119,31 @@ describe('evaluator tests', () => {
     test('error handling', () => {
         const tests: [string, string][] = [
             [
-            "5 + true;",
-            "type mismatch: INTEGER + BOOLEAN",
+                "5 + true;",
+                "type mismatch: INTEGER + BOOLEAN",
             ],
             [
-            "5 + true; 5;",
-            "type mismatch: INTEGER + BOOLEAN",
+                "5 + true; 5;",
+                "type mismatch: INTEGER + BOOLEAN",
             ],
             [
-            "-true",
-            "unknown operator: -BOOLEAN",
+                "-true",
+                "unknown operator: -BOOLEAN",
             ],
             [
-            "true + false;",
-            "unknown operator: BOOLEAN + BOOLEAN",
+                "true + false;",
+                "unknown operator: BOOLEAN + BOOLEAN",
             ],
             [
-            "5; true + false; 5",
-            "unknown operator: BOOLEAN + BOOLEAN",
+                "5; true + false; 5",
+                "unknown operator: BOOLEAN + BOOLEAN",
             ],
             [
-            "if (10 > 1) { true + false; }",
-            "unknown operator: BOOLEAN + BOOLEAN",
+                "if (10 > 1) { true + false; }",
+                "unknown operator: BOOLEAN + BOOLEAN",
             ],
             [
-            `
+                `
             if (10 > 1) {
             if (10 > 1) {
             return true + false;
@@ -151,7 +151,7 @@ describe('evaluator tests', () => {
             return 1;
             }
             `,
-            "unknown operator: BOOLEAN + BOOLEAN",
+                "unknown operator: BOOLEAN + BOOLEAN",
             ],
             [
                 'foobar',
@@ -236,7 +236,7 @@ describe('evaluator tests', () => {
         ];
         tests.forEach(([input, expected]) => {
             const evaluated = testEval(input);
-            switch(typeof expected) {
+            switch (typeof expected) {
                 case 'number':
                     testIntegerObject(evaluated, expected);
                     break;
@@ -245,6 +245,71 @@ describe('evaluator tests', () => {
                     const err = evaluated as InterpretError;
                     expect(err.message).toEqual(expected);
                     break;
+            }
+        });
+    })
+
+    test('array literals', () => {
+        const input = '[1, 2 * 2, 3 + 3]';
+        const evaluated = testEval(input);
+        expect(evaluated?.constructor).toEqual(ArrayLiteral);
+        const arr = evaluated as ArrayLiteral;
+        expect(arr.elements.length).toBe(3);
+
+        testIntegerObject(arr.elements[0], 1);
+        testIntegerObject(arr.elements[1], 4);
+        testIntegerObject(arr.elements[2], 6);
+    })
+
+    test('array index epxressions', () => {
+        const tests: [string, number | undefined][] = [
+            [
+                "[1, 2, 3][0]",
+                1,
+            ],
+            [
+                "[1, 2, 3][1]",
+                2,
+            ],
+            [
+                "[1, 2, 3][2]",
+                3,
+            ],
+            [
+                "let i = 0; [1][i];",
+                1,
+            ],
+            [
+                "[1, 2, 3][1 + 1];",
+                3,
+            ],
+            [
+                "let myArray = [1, 2, 3]; myArray[2];",
+                3,
+            ],
+            [
+                "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+                6,
+            ],
+            [
+                "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+                2,
+            ],
+            [
+                "[1, 2, 3][3]",
+                undefined,
+            ],
+            [
+                "[1, 2, 3][-1]",
+                undefined,
+            ],
+        ]
+        tests.forEach(([input, expected]) => {
+            const evaluated = testEval(input);
+            if (expected) {
+                testIntegerObject(evaluated, expected);
+            } else {
+                testNullObject(evaluated);
             }
         });
     })

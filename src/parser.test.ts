@@ -1,4 +1,4 @@
-import { Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, ReturnStatement, Statement, StringLiteral } from './ast';
+import { ArrayLiteral, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, IndexExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, ReturnStatement, Statement, StringLiteral } from './ast';
 import { Lexer } from './lexer';
 import { Parser } from './parser';
 
@@ -317,6 +317,14 @@ return 993322;
                 "add(a + b + c * d / f + g)",
                 "add((((a + b) + ((c * d) / f)) + g))",
             ],
+            [
+                "a * [1, 2, 3, 4][b * c] * d",
+                "((a * ([1, 2, 3, 4][(b * c)])) * d)",
+            ],
+            [
+                "add(a * b[2], b[1], 2 * [1, 2][1])",
+                "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+            ],
         ];
 
         tests.forEach(([input, expected]) => {
@@ -473,5 +481,38 @@ return 993322;
         expect(expr.expression instanceof StringLiteral).toBe(true);
         const stringlit = expr.expression as StringLiteral;
         expect(stringlit.value).toEqual('hello world');
+    })
+
+
+    it('parses array literals', () => {
+        const input = '[1, 2 * 2, 3 + 3];';
+        const lexer = new Lexer(input);
+        const parser = new Parser(lexer);
+        const program = parser.ParseProgram();
+        expect(program?.statements.length).toBe(1);
+        expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as ExpressionStatement;
+        expect(expr.expression instanceof ArrayLiteral).toBe(true);
+        const arraylit = expr.expression as ArrayLiteral;
+        expect(arraylit.elements.length).toBe(3);
+
+        testIntegerLiteral(arraylit.elements[0] as Expression, 1);
+        testInfixExpression(arraylit.elements[1] as Expression, 2, '*', 2);
+        testInfixExpression(arraylit.elements[2] as Expression, 3, '+', 3);
+    })
+
+    it('parses index expressions', () => {
+        const input = 'myArray[1 + 1]';
+        const lexer = new Lexer(input);
+        const parser = new Parser(lexer);
+        const program = parser.ParseProgram();
+        expect(program?.statements.length).toBe(1);
+        expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as ExpressionStatement;
+        expect(expr.expression instanceof IndexExpression).toBe(true);
+        const indexExpr = expr.expression as IndexExpression;
+
+        testIdentifier(indexExpr.left, 'myArray');
+        testInfixExpression(indexExpr.index as Expression, 1, '+', 1);
     })
 })
