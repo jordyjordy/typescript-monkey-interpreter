@@ -7,7 +7,7 @@
     "test": "jest",
     "build": "tsc",
     "buildRun": "tsc && node dist/index.js",
-    "start": "node dist/index.js"
+    "start": "node --stack-size=2048 dist/index.js"
   },
   "author": "J. van der Tang",
   "license": "ISC",

@@ -36,7 +36,8 @@ const token = {
     FALSE: 'FALSE',
     IF: 'IF',
     ELSE: 'ELSE',
-    RETURN: 'RETURN'
+    RETURN: 'RETURN',
+    STRING: 'STRING',
 } as const;
 
 type Keys = keyof typeof token;

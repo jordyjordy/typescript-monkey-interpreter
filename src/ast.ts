@@ -259,6 +259,26 @@ export class FunctionLiteral implements Expression {
     }
 }
 
+export class StringLiteral implements Expression {
+    token: Token;
+    value: string;
+
+    constructor(token: Token, value: string) {
+        this.token = token;
+        this.value = value;
+    }
+
+    expressionNode() {}
+
+    TokenLiteral() {
+        return this.token[1];
+    }
+
+    string() {
+        return this.token[1];
+    }
+}
+
 export class CallExpression implements Expression {
     token: Token;
     func?: Expression;

@@ -1,12 +1,13 @@
-import { BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, Node, PrefixExpression, Program, ReturnStatement, Statement } from "./ast";
+import { BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, Node, PrefixExpression, Program, ReturnStatement, Statement, StringLiteral } from "./ast";
+import builtins from "./builtins";
 import Environment, { newEnclosedEnvironment } from "./environment";
-import { Bool, ERROR_OBJ, Function, INTEGER_OBJ, Integer, InterpretError, Null, Obj, RETURN_VALUE_OBJ, ReturnValue } from "./object";
+import { Bool, BuiltIn, ERROR_OBJ, Function, INTEGER_OBJ, Integer, InterpretError, Null, Obj, RETURN_VALUE_OBJ, ReturnValue, STRING_OBJ, String } from "./object";
 
 export const TRUE = new Bool(true);
 export const FALSE = new Bool(false);
 export const NULL = new Null();
 
-export function Eval(node: Node, env: Environment): Obj | undefined {
+export function Eval(node: Node, env: Environment): Obj {
     switch(node.constructor) {
         case IntegerLiteral:
             return new Integer((node as IntegerLiteral).value as number);
@@ -55,7 +56,7 @@ export function Eval(node: Node, env: Environment): Obj | undefined {
                 return value;
             }
             env.set(letNode.name?.value!, value!);
-            return;
+            return NULL;
         }
         case Identifier: {
             return evalIdentifier(node as Identifier, env)
@@ -77,8 +78,12 @@ export function Eval(node: Node, env: Environment): Obj | undefined {
             }
             return applyFunction(func!, args!);
         }
+        case StringLiteral: {
+            const str = node  as StringLiteral;
+            return new String(str.value);
+        }
         default:
-            return undefined;
+            return NULL;
     }
 }
 
@@ -109,8 +114,8 @@ function nativeBoolToBooleanObject(value: boolean) {
     return value ? TRUE : FALSE;
 }
 
-function evalProgram(program: Program, env: Environment): Obj | undefined {
-    let result: Obj | undefined;
+function evalProgram(program: Program, env: Environment): Obj {
+    let result: Obj = NULL;
 
     for(let i = 0; i < program.statements.length; i++) {
         const statement = program.statements[i]
@@ -124,8 +129,8 @@ function evalProgram(program: Program, env: Environment): Obj | undefined {
     return result;
 }
 
-function evalBlockStatement(block: BlockStatement, env: Environment): Obj | undefined {
-    let result: Obj | undefined;
+function evalBlockStatement(block: BlockStatement, env: Environment): Obj {
+    let result: Obj = NULL;
 
     for(let i = 0; i < block.statements.length; i++) {
         const statement = block.statements[i];
@@ -174,6 +179,8 @@ function evalInfixExpression(operator: string, left: Obj, right: Obj) {
     switch (true) {
         case left.type() === INTEGER_OBJ && right.type() === INTEGER_OBJ:
             return  evalIntegerInfixExpression(operator, left as Integer, right as Integer);
+        case left.type() === STRING_OBJ && right.type() === STRING_OBJ:
+            return evalStringInfixExpression(operator, left as String, right as String);
         case operator === '==':
             return nativeBoolToBooleanObject(left == right);
         case operator === '!=':
@@ -225,10 +232,13 @@ function evalIfExpression(expr: IfExpression, env: Environment) {
 
 function evalIdentifier(node: Identifier, env: Environment) {
     const val = env.get(node.value);
-    if(val === undefined) {
-        return newError(`identifier not found: ${node.value}`);
+    if(val) {
+        return val;
     }
-    return val;
+    if(builtins[node.value]) {
+        return builtins[node.value];
+    }
+    return newError(`identifier not found: ${node.value}`)
 }
 
 function evalExpressions(exps: (Expression | undefined)[], env: Environment) {
@@ -243,16 +253,29 @@ function evalExpressions(exps: (Expression | undefined)[], env: Environment) {
     return res;
 }
 
-function applyFunction(fn: Obj, args: (Obj |undefined)[]) {
+function evalStringInfixExpression(operator: string, left: String, right: String) {
+    if(operator === '+') {
+        return new String(left.value + right.value);
+    }
+    return newError(`unknown operator: ${left.type()} ${operator} ${right.type()}`);
+}
+
+function applyFunction(fn: Obj, args: Obj[]) {
+    switch(fn.constructor) {
+        case Function:
+            const extendedEnv = extendFunctionEnv(fn as Function, args);
+            const evaluated = Eval((fn as Function).body, extendedEnv);
+            return unwrapReturnValue(evaluated!);
+        case BuiltIn:
+            return (fn as BuiltIn).value(...args);
+    }
     if(!(fn instanceof Function)) {
         return newError(`not a function: ${fn.type()}`)
     }
-    const extendedEnv = extendFunctionEnv(fn, args);
-    const evaluated = Eval(fn.body, extendedEnv);
-    return unwrapReturnValue(evaluated!);
+    return NULL;
 }
 
-function extendFunctionEnv(fn: Function, args: (Obj|undefined)[]) {
+function extendFunctionEnv(fn: Function, args: Obj[]) {
     const env = newEnclosedEnvironment(fn.env);
     fn.parameters.forEach((param, index) => {
         env.set(param.value, args[index]!);

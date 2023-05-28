@@ -1,4 +1,4 @@
-import { Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, ReturnStatement, Statement } from './ast';
+import { Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, ReturnStatement, Statement, StringLiteral } from './ast';
 import { Lexer } from './lexer';
 import { Parser } from './parser';
 
@@ -460,5 +460,18 @@ return 993322;
             testLetStatement(statement, identifier);
             testLiteralExpression(statement.value as Expression, expected);
         })
+    })
+
+    it('parses string literals', () => {
+        const input = '"hello world";'
+        const lexer = new Lexer(input);
+        const parser = new Parser(lexer);
+        const program = parser.ParseProgram();
+        expect(program?.statements.length).toBe(1);
+        expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as ExpressionStatement;
+        expect(expr.expression instanceof StringLiteral).toBe(true);
+        const stringlit = expr.expression as StringLiteral;
+        expect(stringlit.value).toEqual('hello world');
     })
 })

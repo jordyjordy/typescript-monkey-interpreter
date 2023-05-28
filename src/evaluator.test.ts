@@ -1,5 +1,5 @@
 import Lexer from './lexer';
-import { Bool, Function, Integer, InterpretError, Obj } from './object';
+import { Bool, Function, Integer, InterpretError, Obj, String } from './object';
 import { Eval, NULL } from './evaluator';
 import { Parser } from './parser';
 import { Node } from './ast';
@@ -157,6 +157,10 @@ describe('evaluator tests', () => {
                 'foobar',
                 "identifier not found: foobar",
             ],
+            [
+                '"Hello" - "World',
+                "unknown operator: STRING - STRING",
+            ]
         ];
         tests.forEach(([input, expected]) => {
             const evaluated = testEval(input);
@@ -205,6 +209,43 @@ describe('evaluator tests', () => {
         tests.forEach(([input, expected]) => {
             const evaluated = testEval(input);
             testIntegerObject(evaluated, expected);
+        });
+    })
+
+    test('string object', () => {
+        const input = '"hello world"';
+        const evaluated = testEval(input);
+        expect(evaluated?.constructor).toBe(String);
+        expect((evaluated as String).value).toEqual('hello world');
+    })
+
+    test('string concatenation', () => {
+        const input = '"Hello" + " " + "World!"';
+        const evaluated = testEval(input);
+        expect(evaluated?.constructor).toBe(String);
+        expect((evaluated as String).value).toEqual('Hello World!');
+    })
+
+    test('builtin functions', () => {
+        const tests: [string, string | number][] = [
+            [`len("")`, 0],
+            [`len("four")`, 4],
+            [`len("hello world")`, 11],
+            [`len(1)`, "argument to `len` not supported, got INTEGER"],
+            [`len("one", "two")`, "wrong number of arguments. got=2, want=1"],
+        ];
+        tests.forEach(([input, expected]) => {
+            const evaluated = testEval(input);
+            switch(typeof expected) {
+                case 'number':
+                    testIntegerObject(evaluated, expected);
+                    break;
+                case 'string':
+                    expect(evaluated?.constructor).toEqual(InterpretError);
+                    const err = evaluated as InterpretError;
+                    expect(err.message).toEqual(expected);
+                    break;
+            }
         });
     })
 })

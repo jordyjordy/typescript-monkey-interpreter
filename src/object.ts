@@ -9,6 +9,8 @@ const NULL_OBJ = "NULL";
 const RETURN_VALUE_OBJ = "RETURN_VALUE";
 const ERROR_OBJ = 'ERROR';
 const FUNCTION_OBJ = 'FUNCTION';
+const STRING_OBJ = 'STRING';
+const BUILTIN_OBJ = 'BUILTIN';
 
 export interface Obj {
     type: () => ObjectType;
@@ -108,6 +110,36 @@ class Function implements Obj {
     }
 }
 
+class String implements Obj {
+    value: string;
+    constructor(value: string) {
+        this.value = value;
+    }
+    type() {
+        return STRING_OBJ;
+    }
+
+    inspect() {
+        return this.value;
+    }
+}
+
+class BuiltIn implements Obj {
+    value: (...args: Obj[]) => Obj;
+
+    constructor(value: (...args: Obj[]) => Obj) {
+        this.value = value;
+    }
+
+    type() {
+        return BUILTIN_OBJ;
+    }
+
+    inspect() {
+        return "builtin function";
+    }
+}
+
 export {
     Integer,
     Null,
@@ -115,10 +147,14 @@ export {
     ReturnValue,
     InterpretError,
     Function,
+    String,
+    BuiltIn,
     INTEGER_OBJ,
     NULL_OBJ,
     BOOLEAN_OBJ,
     RETURN_VALUE_OBJ,
     ERROR_OBJ,
     FUNCTION_OBJ,
+    STRING_OBJ,
+    BUILTIN_OBJ,
 }

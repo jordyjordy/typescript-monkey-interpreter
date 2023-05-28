@@ -64,6 +64,14 @@ export class Lexer {
         return this.input.substring(pos, this.position);
     }
 
+    readString() {
+        const pos = this.position + 1;
+        do {
+            this.readChar();
+        } while (this.ch !== '"' && this.ch !== '');
+        return this.input.substring(pos, this.position);
+    }
+
     readNumber(): string {
         const pos = this.position;
         while(isDigit(this.ch)) {
@@ -135,6 +143,9 @@ export class Lexer {
                 break;
             case '}':
                 tok = [token.RBRACE, this.ch];
+                break;
+            case '"':
+                tok = [token.STRING, this.readString()];
                 break;
             case '':
                 tok = [token.EOF, this.ch];

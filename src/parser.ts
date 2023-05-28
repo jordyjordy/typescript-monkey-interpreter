@@ -1,4 +1,4 @@
-import { BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement } from "./ast";
+import { BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement, StringLiteral } from "./ast";
 import Lexer from "./lexer";
 import token, { Token, TokenType } from "./token";
 
@@ -55,6 +55,7 @@ export class Parser {
         this.parseFunctionParameters = this.parseFunctionParameters.bind(this);
         this.parseCallExpression = this.parseCallExpression.bind(this);
         this.parseCallArguments = this.parseCallArguments.bind(this);
+        this.parseStringLiteral = this.parseStringLiteral.bind(this);
 
         this.registerPrefix(token.IDENT, this.parseIdentifier);
         this.registerPrefix(token.INT, this.parseIntegerLiteral);
@@ -65,6 +66,7 @@ export class Parser {
         this.registerPrefix(token.LPAREN, this.parseGroupedExpression);
         this.registerPrefix(token.FUNCTION, this.parseFunctionLiteral);
         this.registerPrefix(token.IF, this.parseIfExpression);
+        this.registerPrefix(token.STRING, this.parseStringLiteral);
         this.registerInfix(token.PLUS, this.parseInfixExpression);
         this.registerInfix(token.MINUS, this.parseInfixExpression);
         this.registerInfix(token.SLASH, this.parseInfixExpression);
@@ -188,6 +190,10 @@ export class Parser {
 
     parseBoolean() {
         return new Boolean(this.curToken, this.curTokenIs(token.TRUE));
+    }
+
+    parseStringLiteral() {
+        return new StringLiteral(this.curToken, this.curToken[1]);
     }
 
     parseGroupedExpression() {
