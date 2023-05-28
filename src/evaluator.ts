@@ -1,7 +1,7 @@
-import { BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, Node, PrefixExpression, Program, ReturnStatement, Statement, StringLiteral, ArrayLiteral as AstArrayLiteral, IndexExpression } from "./ast";
+import { BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, Node, PrefixExpression, Program, ReturnStatement, Statement, StringLiteral, ArrayLiteral as AstArrayLiteral, IndexExpression, HashLiteral } from "./ast";
 import builtins from "./builtins";
 import Environment, { newEnclosedEnvironment } from "./environment";
-import { ARRAY_OBJ, ArrayLiteral, Bool, BuiltIn, ERROR_OBJ, Function, INTEGER_OBJ, Integer, InterpretError, Null, Obj, RETURN_VALUE_OBJ, ReturnValue, STRING_OBJ, String } from "./object";
+import { ARRAY_OBJ, ArrayLiteral, Bool, BuiltIn, ERROR_OBJ, Function, HASH_OBJ, Hash, HashKey, HashPair, Hashable, IHashable, INTEGER_OBJ, Integer, InterpretError, Null, Obj, RETURN_VALUE_OBJ, ReturnValue, STRING_OBJ, String } from "./object";
 
 export const TRUE = new Bool(true);
 export const FALSE = new Bool(false);
@@ -96,6 +96,9 @@ export function Eval(node: Node, env: Environment): Obj {
             const indexObj = Eval(index.index as Expression, env);
             
             return evalIndexExpression(left, indexObj);
+        }
+        case HashLiteral: {
+            return evalHashLiteral(node as HashLiteral, env);
         }
         default:
             return NULL;
@@ -279,6 +282,8 @@ function evalIndexExpression(left: Obj, right: Obj) {
     switch(true) {
         case left.type() === ARRAY_OBJ && right.type() === INTEGER_OBJ:
             return evalArrayIndexExpression(left as ArrayLiteral, right as Integer);
+        case left.type() === HASH_OBJ:
+            return evalHashIndexExpression(left as Hash, right);
         default:
             return newError(`index operator not support: ${left.type()}`);
     }
@@ -289,6 +294,39 @@ function evalArrayIndexExpression(left: ArrayLiteral, index: Integer): Obj {
         return NULL;
     }
     return left.elements[index.value];
+}
+
+function evalHashIndexExpression(left: Hash, right: Obj) {
+    if(!(right instanceof Hashable)) {
+        return newError(`unusable as hash key: ${right.type()}`);
+    }
+    const hashKey = right as IHashable;
+    const pair = left.pairs.get(hashKey.hashKey().value);
+    return pair
+        ? pair.value
+        : NULL;
+}
+
+function evalHashLiteral(node: HashLiteral, env: Environment) {
+    const pairs = new Map<string, HashPair>();
+    for(const [keyNode, valueNode] of node.pairs) {
+        const key = Eval(keyNode, env);
+        if(isError(key)) {
+            return key;
+        }
+        
+        if(!(key instanceof Hashable)) {
+            return newError(`unusable as hash key: ${key.type()}`);
+        }
+        const hashKey = key as IHashable;
+        const value = Eval(valueNode, env);
+        if(isError(value)) {
+            return value;
+        }
+        const hashed = hashKey.hashKey();
+        pairs.set(hashed.value, new HashPair(key, value));
+    }
+    return new Hash(pairs);
 }
 
 function applyFunction(fn: Obj, args: Obj[]) {

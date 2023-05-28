@@ -1,4 +1,4 @@
-import { ArrayLiteral, BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, IndexExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement, StringLiteral } from "./ast";
+import { ArrayLiteral, BlockStatement, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, HashLiteral, Identifier, IfExpression, IndexExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement, StringLiteral } from "./ast";
 import Lexer from "./lexer";
 import token, { Token, TokenType } from "./token";
 
@@ -60,6 +60,8 @@ export class Parser {
         this.parseStringLiteral = this.parseStringLiteral.bind(this);
         this.parseArrayLiteral = this.parseArrayLiteral.bind(this);
         this.parseIndexExpression = this.parseIndexExpression.bind(this);
+        this.parseHashLiteral = this.parseHashLiteral.bind(this);
+
         this.registerPrefix(token.IDENT, this.parseIdentifier);
         this.registerPrefix(token.INT, this.parseIntegerLiteral);
         this.registerPrefix(token.BANG, this.parsePrefixExpression);
@@ -71,6 +73,8 @@ export class Parser {
         this.registerPrefix(token.IF, this.parseIfExpression);
         this.registerPrefix(token.STRING, this.parseStringLiteral);
         this.registerPrefix(token.LBRACKET, this.parseArrayLiteral);
+        this.registerPrefix(token.LBRACE, this.parseHashLiteral);
+
         this.registerInfix(token.PLUS, this.parseInfixExpression);
         this.registerInfix(token.MINUS, this.parseInfixExpression);
         this.registerInfix(token.SLASH, this.parseInfixExpression);
@@ -335,6 +339,27 @@ export class Parser {
             return [];
         }
         return args;
+    }
+
+    parseHashLiteral() {
+        const hash = new HashLiteral(this.curToken);
+        while(!(this.peekTokenIs(token.RBRACE))) {
+            this.nextToken();
+            const key = this.parseExpression(LOWEST);
+            if(!this.expectPeek(token.COLON) || key === undefined) {
+                return undefined;
+            }
+            this.nextToken();
+            const val = this.parseExpression(LOWEST);
+            hash.pairs.set(key!, val!);
+            if(!this.peekTokenIs(token.RBRACE) && !this.expectPeek(token.COMMA)) {
+                return undefined;
+            }
+        }
+        if(!this.expectPeek(token.RBRACE)) {
+            return undefined;
+        }
+        return hash;
     }
 
     parsePrefixExpression() {

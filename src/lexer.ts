@@ -102,6 +102,9 @@ export class Lexer {
             case ';':
                 tok = [token.SEMICOLON, this.ch];
                 break;
+            case ':':
+                tok = [token.COLON, this.ch];
+                break;
             case '(':
                 tok = [token.LPAREN, this.ch];
                 break;

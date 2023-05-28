@@ -1,5 +1,6 @@
 import { BlockStatement, Identifier } from "./ast";
 import Environment from "./environment";
+import crypto from 'crypto';
 
 type ObjectType = string;
 
@@ -12,14 +13,24 @@ const FUNCTION_OBJ = 'FUNCTION';
 const STRING_OBJ = 'STRING';
 const BUILTIN_OBJ = 'BUILTIN';
 const ARRAY_OBJ = 'ARRAY';
+const HASH_OBJ = 'HASH';
+
 export interface Obj {
     type: () => ObjectType;
     inspect: () => string;
 }
 
-class Integer implements Obj {
+export class Hashable {}
+
+export interface IHashable extends Obj {
+    hashKey: () => HashKey;
+}
+
+class Integer extends Hashable implements IHashable {
     value: number;
+
     constructor(value: number) {
+        super();
         this.value = value;
     }
 
@@ -30,12 +41,17 @@ class Integer implements Obj {
     inspect() {
         return this.value.toString();
     }
+
+    hashKey() {
+        return new HashKey(this.type(), this.value.toString());
+    }
 }
 
-class Bool implements Obj {
+class Bool extends Hashable implements IHashable {
     value: boolean;
 
     constructor(value: boolean) {
+        super();
         this.value = value;
     }
     
@@ -45,6 +61,10 @@ class Bool implements Obj {
 
     inspect() {
         return this.value + '';
+    }
+
+    hashKey() {
+        return new HashKey(this.type(), this.value ? '1' : '0');
     }
 }
 
@@ -110,9 +130,10 @@ class Function implements Obj {
     }
 }
 
-class String implements Obj {
+class String extends Hashable implements IHashable {
     value: string;
     constructor(value: string) {
+        super();
         this.value = value;
     }
     type() {
@@ -121,6 +142,12 @@ class String implements Obj {
 
     inspect() {
         return this.value;
+    }
+
+    hashKey() {
+        return new HashKey(
+            this.type(),  crypto.createHash('sha1').update(this.value).digest('hex')
+        );
     }
 }
 
@@ -152,6 +179,46 @@ class ArrayLiteral implements Obj {
     }
 }
 
+export class HashKey {
+    type: ObjectType;
+    value: string;
+
+    constructor(type: ObjectType, value: string) {
+        this.type = type;
+        this.value = value;
+    }
+}
+
+export class HashPair {
+    key: Obj;
+    value: Obj;
+
+    constructor(key: Obj, value: Obj) {
+        this.key = key;
+        this.value = value;
+    }
+}
+
+class Hash implements Obj {
+    pairs: Map<string, HashPair>;
+
+    constructor(pairs: Map<string, HashPair> = new Map()) {
+        this.pairs = pairs;
+    }
+
+    type() {
+        return HASH_OBJ;
+    }
+
+    inspect() {
+        const pairs: string[] = [];
+        for(const [key, value] of this.pairs) {
+            pairs.push(`${value.key.inspect()}: ${value.value.inspect()}`)
+        }
+        return `{${pairs.join(', ')}}`;
+    }
+}
+
 export {
     Integer,
     Null,
@@ -162,6 +229,7 @@ export {
     String,
     BuiltIn,
     ArrayLiteral,
+    Hash,
     INTEGER_OBJ,
     NULL_OBJ,
     BOOLEAN_OBJ,
@@ -171,4 +239,5 @@ export {
     STRING_OBJ,
     BUILTIN_OBJ,
     ARRAY_OBJ,
+    HASH_OBJ
 }

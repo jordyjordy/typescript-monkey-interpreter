@@ -1,4 +1,4 @@
-import { ArrayLiteral, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, Identifier, IfExpression, IndexExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, ReturnStatement, Statement, StringLiteral } from './ast';
+import { ArrayLiteral, Boolean, CallExpression, Expression, ExpressionStatement, FunctionLiteral, HashLiteral, Identifier, IfExpression, IndexExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, ReturnStatement, Statement, StringLiteral } from './ast';
 import { Lexer } from './lexer';
 import { Parser } from './parser';
 
@@ -475,6 +475,8 @@ return 993322;
         const lexer = new Lexer(input);
         const parser = new Parser(lexer);
         const program = parser.ParseProgram();
+        checkParserErrors(parser);
+
         expect(program?.statements.length).toBe(1);
         expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
         const expr = program?.statements[0] as ExpressionStatement;
@@ -489,6 +491,8 @@ return 993322;
         const lexer = new Lexer(input);
         const parser = new Parser(lexer);
         const program = parser.ParseProgram();
+        checkParserErrors(parser);
+
         expect(program?.statements.length).toBe(1);
         expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
         const expr = program?.statements[0] as ExpressionStatement;
@@ -506,6 +510,8 @@ return 993322;
         const lexer = new Lexer(input);
         const parser = new Parser(lexer);
         const program = parser.ParseProgram();
+        checkParserErrors(parser);
+
         expect(program?.statements.length).toBe(1);
         expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
         const expr = program?.statements[0] as ExpressionStatement;
@@ -514,5 +520,70 @@ return 993322;
 
         testIdentifier(indexExpr.left, 'myArray');
         testInfixExpression(indexExpr.index as Expression, 1, '+', 1);
+    })
+
+    it('parses hash literals string keys', () => {
+        const input = '{ "one": 1, "two": 2, "three": 3 }';
+        const lexer = new Lexer(input);
+        const parser = new Parser(lexer);
+        const program = parser.ParseProgram();
+        checkParserErrors(parser);
+
+        expect(program?.statements.length).toBe(1);
+        expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as ExpressionStatement;
+        expect(expr.expression instanceof HashLiteral).toBe(true);
+        const hash = expr.expression as HashLiteral;
+
+        const expected: Record<string, number> = {
+            "one": 1,
+            "two": 2,
+            "three": 3,
+        }
+
+        for(let [key, value] of hash.pairs) {
+            expect(key instanceof StringLiteral).toBe(true);
+            testIntegerLiteral(value, expected[key.string()]);
+        }
+    })
+
+    it('parses an empty hash literal', () => {
+        const input = '{}';
+        const lexer = new Lexer(input);
+        const parser = new Parser(lexer);
+        const program = parser.ParseProgram();
+        checkParserErrors(parser);
+
+        expect(program?.statements.length).toBe(1);
+        expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as ExpressionStatement;
+        expect(expr.expression instanceof HashLiteral).toBe(true);
+        const hash = expr.expression as HashLiteral;
+        expect(hash.pairs.size).toBe(0);
+    })
+
+    it('parses hash literals with expressions', () => {
+        const input = `{"one": 0 + 1, "two": 10 - 8, "three": 15 / 5}`;
+        const lexer = new Lexer(input);
+        const parser = new Parser(lexer);
+        const program = parser.ParseProgram();
+        checkParserErrors(parser);
+
+        expect(program?.statements.length).toBe(1);
+        expect(program?.statements[0] instanceof ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as ExpressionStatement;
+        expect(expr.expression instanceof HashLiteral).toBe(true);
+        const hash = expr.expression as HashLiteral;
+
+        const expected: Record<string, any> = {
+            "one": (e: Expression) => testInfixExpression(e, 0, "+", 1),
+            "two": (e: Expression) => testInfixExpression(e, 10, "-", 8),
+            "three": (e: Expression) => testInfixExpression(e, 15, "/", 5),
+        }
+
+        for(let [key, value] of hash.pairs) {
+            expect(key instanceof StringLiteral).toBe(true);
+            expected[key.string()](value);
+        }
     })
 })

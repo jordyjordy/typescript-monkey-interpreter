@@ -16,6 +16,7 @@ const token = {
     BANG: '!',
     ASTERISK: '*',
     SLASH: '/',
+    COLON: ':',
 
     LT: '<',
     GT: '>',

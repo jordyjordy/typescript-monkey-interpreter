@@ -1,6 +1,6 @@
 import Lexer from './lexer';
-import { ArrayLiteral, Bool, Function, Integer, InterpretError, Obj, String } from './object';
-import { Eval, NULL } from './evaluator';
+import { ArrayLiteral, Bool, Function, Hash, Integer, InterpretError, Obj, String } from './object';
+import { Eval, FALSE, NULL, TRUE } from './evaluator';
 import { Parser } from './parser';
 import { Node } from './ast';
 import Environment from './environment';
@@ -160,7 +160,11 @@ describe('evaluator tests', () => {
             [
                 '"Hello" - "World',
                 "unknown operator: STRING - STRING",
-            ]
+            ],
+            [
+                `{"name": "Monkey"}[fn(x) { x }];`,
+                "unusable as hash key: FUNCTION",
+            ],
         ];
         tests.forEach(([input, expected]) => {
             const evaluated = testEval(input);
@@ -312,6 +316,77 @@ describe('evaluator tests', () => {
                 testNullObject(evaluated);
             }
         });
+    })
+
+    test('hash literals', () => {
+        const input = `let two = "two";
+        {
+        "one": 10 - 9,
+        two: 1 + 1,
+        "thr" + "ee": 6 / 2,
+        4: 4,
+        true: 5,
+        false: 6
+        }`;
+        const evaluated = testEval(input);
+        expect(evaluated?.constructor).toEqual(Hash);
+
+        const expected = new Map([
+            [new String('one').hashKey(), 1],
+            [new String('two').hashKey(), 2],
+            [new String('three').hashKey(), 3],
+            [new Integer(4).hashKey(), 4],
+            [TRUE.hashKey(), 5],
+            [FALSE.hashKey(), 6],
+        ])
+
+        const hash = evaluated as Hash;
+        expect(hash.pairs.size).toEqual(expected.size);
+
+        for (const [key, value] of expected) {
+            expect((hash.pairs.get(key.value)?.value as any).value).toEqual(value);
+        }
+    })
+
+    test('hash index expressions', () => {
+        const tests: [string, number | undefined][] = [
+            [
+                `{"foo": 5}["foo"]`,
+                5,
+            ],
+            [
+                `{"foo": 5}["bar"]`,
+                undefined,
+            ],
+            [
+                `let key = "foo"; {"foo": 5}[key]`,
+                5,
+            ],
+            [
+                `{}["foo"]`,
+                undefined,
+            ],
+            [
+                `{5: 5}[5]`,
+                5,
+            ],
+            [
+                `{true: 5}[true]`,
+                5,
+            ],
+            [
+                `{false: 5}[false]`,
+                5,
+            ],
+        ];
+        tests.forEach(([input, expected]) => {
+            const evaluated = testEval(input);
+            if (expected) {
+                testIntegerObject(evaluated, expected);
+            } else {
+                testNullObject(evaluated);
+            }
+        })
     })
 })
 

@@ -299,7 +299,7 @@ export class ArrayLiteral implements Expression {
 }
 
 export class IndexExpression implements Expression {
-    token :Token;
+    token: Token;
     left: Expression;
     index: Expression | undefined;
     
@@ -314,6 +314,28 @@ export class IndexExpression implements Expression {
 
     string() {
         return `(${this.left.string()}[${this.index?.string() ?? '??'}])`
+    }
+}
+
+export class HashLiteral implements Expression {
+    token: Token;
+    pairs: Map<Expression, Expression>;
+
+    constructor(token: Token) {
+        this.token = token;
+        this.pairs = new Map<Expression, Expression>();
+    }
+
+    expressionNode() {}
+
+    TokenLiteral() { return this.token[1]; }
+
+    string() {
+        const pairs: string[] = [];
+        this.pairs.forEach((val, key) => {
+            pairs.push(`${key.string}:${val.string()}`);
+        })
+        return`{${pairs.join(', ')}}`;
     }
 }
 
