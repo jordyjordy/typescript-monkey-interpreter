@@ -50,6 +50,10 @@ describe('evaluator tests', () => {
             ["true == false", false],
             ["true != false", true],
             ["false != true", true],
+            ['"x" == "x"', true],
+            ['"x" != "x"', false],
+            ['"x" == "y"', false],
+            ['"x" != "y"', true],
         ]
 
         tests.forEach(([input, expected]) => {

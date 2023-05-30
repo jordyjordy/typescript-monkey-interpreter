@@ -278,6 +278,12 @@ function evalStringInfixExpression(operator: string, left: String, right: String
     if(operator === '+') {
         return new String(left.value + right.value);
     }
+    if(operator === '==') {
+        return new Bool(left.value === right.value);
+    }
+    if(operator === '!=') {
+        return new Bool(left.value !== right.value);
+    }
     return newError(`unknown operator: ${left.type()} ${operator} ${right.type()}`);
 }
 
