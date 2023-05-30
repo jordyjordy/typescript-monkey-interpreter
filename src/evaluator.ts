@@ -7,7 +7,7 @@ export const TRUE = new Bool(true);
 export const FALSE = new Bool(false);
 export const NULL = new Null();
 
-export function Eval(node: Node, env: Environment): Obj {
+export function Eval(node: Node, env: Environment): Obj | undefined {
     switch(node.constructor) {
         case IntegerLiteral:
             return new Integer((node as IntegerLiteral).value as number);
@@ -56,7 +56,7 @@ export function Eval(node: Node, env: Environment): Obj {
                 return value;
             }
             env.set(letNode.name?.value!, value!);
-            return NULL;
+            return undefined;
         }
         case Identifier: {
             return evalIdentifier(node as Identifier, env)
@@ -73,10 +73,10 @@ export function Eval(node: Node, env: Environment): Obj {
                 return func;
             }
             const args = evalExpressions((node as CallExpression).functionArguments!, env);
-            if(args.length === 1 && isError(args[0])) {
+            if(args.length === 1 && (isError(args[0]) || args[0] === undefined)) {
                 return args[0];
             }
-            return applyFunction(func!, args!);
+            return applyFunction(func!, args as Obj[]);
         }
         case StringLiteral: {
             const str = node  as StringLiteral;
@@ -85,16 +85,19 @@ export function Eval(node: Node, env: Environment): Obj {
         case AstArrayLiteral: {
             const arr = node as AstArrayLiteral;
             const values = evalExpressions(arr.elements, env);
-            if(values.length === 1 && isError(values[0])) {
+            if(values.length === 1 && (isError(values[0]) || values[0] === undefined)) {
                 return values[0];
             }
-            return new ArrayLiteral(values);
+            return new ArrayLiteral(values as Obj[]);
         }
         case IndexExpression: {
             const index = node as IndexExpression;
             const left = Eval(index.left, env);
+
             const indexObj = Eval(index.index as Expression, env);
-            
+            if(!left || !indexObj) {
+                return undefined;
+            }
             return evalIndexExpression(left, indexObj);
         }
         case HashLiteral: {
@@ -132,8 +135,8 @@ function nativeBoolToBooleanObject(value: boolean) {
     return value ? TRUE : FALSE;
 }
 
-function evalProgram(program: Program, env: Environment): Obj {
-    let result: Obj = NULL;
+function evalProgram(program: Program, env: Environment): Obj | undefined {
+    let result: (Obj | undefined);
 
     for(let i = 0; i < program.statements.length; i++) {
         const statement = program.statements[i]
@@ -147,8 +150,8 @@ function evalProgram(program: Program, env: Environment): Obj {
     return result;
 }
 
-function evalBlockStatement(block: BlockStatement, env: Environment): Obj {
-    let result: Obj = NULL;
+function evalBlockStatement(block: BlockStatement, env: Environment): Obj | undefined {
+    let result: Obj | undefined;
 
     for(let i = 0; i < block.statements.length; i++) {
         const statement = block.statements[i];
@@ -237,7 +240,7 @@ function evalIntegerInfixExpression(operator: string, left: Integer, right: Inte
 
 function evalIfExpression(expr: IfExpression, env: Environment) {
     const condition = Eval(expr.condition!, env);
-    if(isError(condition)) {
+    if(!condition || isError(condition)) {
         return condition;
     }
     if(isTruthy(condition)) {
@@ -259,12 +262,12 @@ function evalIdentifier(node: Identifier, env: Environment) {
     return newError(`identifier not found: ${node.value}`)
 }
 
-function evalExpressions(exps: (Expression | undefined)[], env: Environment) {
+function evalExpressions(exps: (Expression | undefined)[], env: Environment): undefined[] | Obj[]  {
     let res: Obj[] = [];
     for(let i = 0; i < exps.length; i++) {
         const evaluated = Eval(exps[i]!, env);
-        if(isError(evaluated)) {
-            return [evaluated];
+        if(!evaluated || isError(evaluated)) {
+            return [evaluated] as [undefined] | [Obj];
         }
         res.push(evaluated!);
     }
@@ -311,7 +314,7 @@ function evalHashLiteral(node: HashLiteral, env: Environment) {
     const pairs = new Map<string, HashPair>();
     for(const [keyNode, valueNode] of node.pairs) {
         const key = Eval(keyNode, env);
-        if(isError(key)) {
+        if(!key || isError(key)) {
             return key;
         }
         
@@ -320,7 +323,7 @@ function evalHashLiteral(node: HashLiteral, env: Environment) {
         }
         const hashKey = key as IHashable;
         const value = Eval(valueNode, env);
-        if(isError(value)) {
+        if(!value || isError(value)) {
             return value;
         }
         const hashed = hashKey.hashKey();
