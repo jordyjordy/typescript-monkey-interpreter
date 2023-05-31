@@ -1,4 +1,4 @@
-import token, { Token, TokenType } from "./token";
+import token, { Token, TokenType } from "../token";
 
 const keywords: {[k:string]: TokenType | undefined } = {
     fn: token.FUNCTION,

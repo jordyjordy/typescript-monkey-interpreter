@@ -1,6 +1,6 @@
-import * as ast from './ast';
-import { Lexer } from './lexer';
-import { Parser } from './parser';
+import * as ast from '../ast';
+import { Lexer } from '../lexer';
+import { Parser } from '.';
 
 function testLetStatement(s: ast.Statement, name: string) {
     expect(s.TokenLiteral()).toEqual('let');

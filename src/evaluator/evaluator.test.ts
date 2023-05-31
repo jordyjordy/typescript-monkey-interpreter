@@ -1,8 +1,8 @@
-import Lexer from './lexer';
-import { ArrayLiteral, Bool, Function, Hash, Integer, InterpretError, Obj, String } from './object';
-import { Eval, FALSE, NULL, TRUE } from './evaluator';
-import { Parser } from './parser';
-import { Node } from './ast';
+import Lexer from '../lexer';
+import { ArrayLiteral, Bool, Function, Hash, Integer, InterpretError, Obj, String } from '../object';
+import { Eval, FALSE, NULL, TRUE } from '.';
+import { Parser } from '../parser';
+import { Node } from '../ast';
 import Environment from './environment';
 
 describe('evaluator tests', () => {

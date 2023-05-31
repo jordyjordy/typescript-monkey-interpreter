@@ -1,4 +1,4 @@
-import { Obj } from "./object";
+import { Obj } from "../object";
 
 export function newEnclosedEnvironment(outer: Environment) {
     const env = new Environment();

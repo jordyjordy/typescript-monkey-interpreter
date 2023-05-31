@@ -1,7 +1,7 @@
-import * as Ast from "./ast";
-import builtins from "./builtins";
+import * as Ast from "../ast";
+import builtins from "../object/builtins";
 import Environment, { newEnclosedEnvironment } from "./environment";
-import * as Obj from "./object";
+import * as Obj from "../object";
 
 export const TRUE = new Obj.Bool(true);
 export const FALSE = new Obj.Bool(false);

@@ -1,5 +1,5 @@
-import { BlockStatement, Identifier } from "./ast";
-import Environment from "./environment";
+import { BlockStatement, Identifier } from "../ast";
+import Environment from "../evaluator/environment";
 import crypto from 'crypto';
 
 type ObjectType = string;

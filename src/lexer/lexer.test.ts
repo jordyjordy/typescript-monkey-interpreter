@@ -1,5 +1,5 @@
-import token, { Token, TokenType } from "./token";
-import Lexer from "./lexer";
+import token, { Token, TokenType } from "../token";
+import Lexer from ".";
 
 describe('lexer', () => {
     it('tests next token', () => {

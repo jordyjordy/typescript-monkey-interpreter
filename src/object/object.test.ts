@@ -1,4 +1,4 @@
-import { String } from "./object"
+import { String } from "."
 
 describe('object tests', () => {
     test('string hash key', () => {

@@ -2,7 +2,7 @@ import Lexer from "./lexer";
 import { Parser } from "./parser";
 import { Eval } from "./evaluator";
 import { Program } from "./ast";
-import Environment from "./environment";
+import Environment from "./evaluator/environment";
 
 const prompt =">> ";
 const MONKEY_FACE = `            __,__

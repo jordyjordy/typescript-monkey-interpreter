@@ -1,5 +1,5 @@
-import { Identifier, LetStatement, Program } from "./ast"
-import token from "./token"
+import { Identifier, LetStatement, Program } from "."
+import token from "../token"
 
 describe('AST tests', () => {
     it('returns a String', () => {

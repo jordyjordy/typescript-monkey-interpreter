@@ -1,5 +1,5 @@
-import { NULL } from "./evaluator";
-import * as Obj from "./object";
+import { NULL } from "../evaluator";
+import * as Obj from ".";
 
 export default {
     len: new Obj.BuiltIn((...args: Obj.Obj[]) => {
