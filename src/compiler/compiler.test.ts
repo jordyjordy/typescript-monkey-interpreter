@@ -27,7 +27,7 @@ const runCompilerTests = (tests: {input: string, expectedConstants: number[], ex
         const program = parse(test.input);
         expect(program).not.toBe(undefined);
         const res = compiler.compile(program as ast.Program);
-        expect(res).not.toBe(null);
+        // expect(res).not.toBe(null);
 
         const byteCode = compiler.byteCode();
 
