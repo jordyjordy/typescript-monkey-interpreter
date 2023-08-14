@@ -4,7 +4,6 @@ import Lexer from "../lexer";
 import * as Obj from "../object";
 import { Parser } from "../parser";
 
-
 export class Bytecode {
     instructions: Code.Instructions;
     constants: Obj.Obj[];
@@ -57,6 +56,13 @@ export class Compiler {
                 error = this.compile(infix.right);
                 if(error !== undefined) {
                     return error;
+                }
+                switch(infix.operator) {
+                    case "+":
+                        this.emit(Code.OpAdd);
+                        break;
+                    default: 
+                        return new Error(`Unknown operator: ${infix.operator}`);
                 }
                 break;
             case Ast.IntegerLiteral:

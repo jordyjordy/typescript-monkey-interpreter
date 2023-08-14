@@ -24,7 +24,9 @@ export class Instructions extends Array<number> {
 
         switch (operandCount) {
             case 1:
-                return `${def.name} ${operands[0]}`
+                return `${def.name} ${operands[0]}`;
+            case 0:
+                return `${def.name}`;
         }
 
         return `Error: unhandled operandCount for ${def.name}`;
@@ -42,6 +44,7 @@ export class Instructions extends Array<number> {
 export type Opcode = number;
 
 export const OpConstant: Opcode = 0;
+export const OpAdd: Opcode = 1;
 
 export class Definition {
     name: string;
@@ -57,6 +60,7 @@ const bitmask = 0b11111111
 
 const definitions = {
     [OpConstant]: new Definition('OpConstant', [2]),
+    [OpAdd]: new Definition('OpAdd', []),
 }
 
 export function Lookup(op: number) {
@@ -74,7 +78,7 @@ function getBytes(num: number, width: number) {
 function getNumber(instructions: Instructions, width: number) {
     let num = 0;
     for(let i = 0; i < width; i++) {
-        num += instructions[instructions.length - 1 - i] << (i * 8);
+        num = (num << 8) + instructions[i];
     }
     return num;
 }
@@ -103,7 +107,7 @@ export function Make(op: Opcode, ...operands: number[]): Instructions {
 export function ReadOperands(def: Definition, instructions: Instructions): [number[], number] {
     const operands = new Array<number>(def.operandWidths.length);
     let offset = 0;
-    console.log(def.operandWidths);
+
     def.operandWidths.forEach((width, index) => {
         switch (width) {
             case 2:
@@ -111,10 +115,10 @@ export function ReadOperands(def: Definition, instructions: Instructions): [numb
         }
         offset += width;
     })
-    console.log(offset);
+
     return [operands, offset];
 }
 
-function ReadUint16(instructions: Instructions): number {
+export function ReadUint16(instructions: Instructions): number {
     return getNumber(instructions, 2);
 }
