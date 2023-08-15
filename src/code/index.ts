@@ -49,6 +49,11 @@ export const OpPop: Opcode = 2;
 export const OpSub: Opcode = 3;
 export const OpMul: Opcode = 4;
 export const OpDiv: Opcode = 5;
+export const OpTrue: Opcode = 6;
+export const OpFalse: Opcode = 7;
+export const OpEqual: Opcode = 8;
+export const OpNotEqual: Opcode = 9;
+export const OpGreaterThan: Opcode = 10;
 
 export class Definition {
     name: string;
@@ -69,6 +74,11 @@ const definitions = {
     [OpSub]: new Definition('OpSub', []),
     [OpMul]: new Definition('OpMul', []),
     [OpDiv]: new Definition('OpDiv', []),
+    [OpTrue]: new Definition('OpTrue', []),
+    [OpFalse]: new Definition('OpFalse', []),
+    [OpEqual]: new Definition('OpEqual', []),
+    [OpNotEqual]: new Definition('OpNotEqual', []),
+    [OpGreaterThan]: new Definition('OpGreaterThan', []),
 }
 
 export function Lookup(op: number) {

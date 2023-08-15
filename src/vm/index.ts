@@ -1,6 +1,7 @@
 import * as Obj from "../object";
 import * as Code from "../code";
 import { Bytecode } from "../compiler";
+import { FALSE, TRUE } from "../evaluator";
 
 const stackSize = 2048;
 
@@ -38,6 +39,7 @@ export class Vm {
             this.executeBinaryIntegerOperation(op, left, right);
         }
     }
+    
     executeBinaryIntegerOperation(op: Code.Opcode, left: Obj.Obj, right: Obj.Obj): Error | void {
         const leftValue = (left as Obj.Integer).value;
         const rightValue = (right as Obj.Integer).value;
@@ -62,6 +64,41 @@ export class Vm {
         return this.push(new Obj.Integer(result));
     }
 
+    executeComparison(op: Code.Opcode): Error | void {
+        const right = this.pop();
+        const left = this.pop()
+
+        if(left.type() === Obj.INTEGER_OBJ && right.type() === Obj.INTEGER_OBJ) {
+            return this.executeIntegerComparison(op, left, right);
+        }
+
+        switch (op) {
+            case Code.OpEqual:
+                this.push(nativeBoolToBooleanObject(right === left));
+                break;
+            case Code.OpNotEqual:
+                this.push(nativeBoolToBooleanObject(right !== left));
+                break;
+            default:
+                return new Error(`Unknown operator: ${op}, ${left.type()}, ${right.type()}`);
+        }
+    }
+
+    executeIntegerComparison(op: Code.Opcode, left: Obj.Obj, right: Obj.Obj): Error | void {
+        const leftValue = (left as Obj.Integer).value;
+        const rightValue = (right as Obj.Integer).value;
+        switch (op) {
+            case Code.OpEqual:
+                return this.push(nativeBoolToBooleanObject(rightValue === leftValue));
+            case Code.OpNotEqual:
+                return this.push(nativeBoolToBooleanObject(rightValue !== leftValue));
+            case Code.OpGreaterThan:
+                return this.push(nativeBoolToBooleanObject(rightValue < leftValue));
+            default:
+                return new Error(`unknown operator: ${op}`);
+        }
+    }
+
     run(): Error | void {
         
         for(let ip = 0; ip < this.instructions.length; ip++) {
@@ -77,12 +114,36 @@ export class Vm {
                 case Code.OpAdd:
                 case Code.OpSub:
                 case Code.OpMul:
-                case Code.OpDiv:
+                case Code.OpDiv: {
                     const error = this.executeBinaryOperation(op);
                     if(error) {
                         return error;
                     }
                     break;
+                }
+                case Code.OpTrue: {
+                    const err = this.push(TRUE);
+                    if(err) {
+                        return err;
+                    }
+                    break;
+                }
+                case Code.OpFalse: {
+                    const err = this.push(FALSE);
+                    if(err) {
+                        return err;
+                    }
+                    break;
+                }
+                case Code.OpEqual:
+                case Code.OpNotEqual:
+                case Code.OpGreaterThan: {
+                    const err = this.executeComparison(op);
+                    if(err) {
+                        return err;
+                    }
+                    break;
+                }
                 case Code.OpPop:
                     this.pop();
                     break;
@@ -103,4 +164,11 @@ export class Vm {
         this.sp--;
         return obj;
     }
+}
+
+
+function nativeBoolToBooleanObject(input: boolean): Obj.Bool {
+    return input
+        ? TRUE
+        : FALSE;
 }

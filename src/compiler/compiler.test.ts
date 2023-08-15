@@ -60,6 +60,97 @@ describe('compiler tests', () => {
 
         runCompilerTests(tests);
     })
+
+    test('boolean expressions', () => {
+        const tests = [{
+            input: "true",
+            expectedConstants: [],
+            expectedInstructions: [
+                code.Make(code.OpTrue),
+                code.Make(code.OpPop),
+            ],
+        },
+        {
+            input: "false",
+            expectedConstants: [],
+            expectedInstructions: [
+                code.Make(code.OpFalse),
+                code.Make(code.OpPop),
+            ],
+        },
+        {
+            input: "1 > 2",
+            expectedConstants: [1, 2],
+            expectedInstructions: [
+                code.Make(code.OpConstant, 0),
+                code.Make(code.OpConstant, 1),
+                code.Make(code.OpGreaterThan),
+                code.Make(code.OpPop),
+            ],
+        },
+        {
+            input: "1 < 2",
+            expectedConstants: [2, 1],
+            expectedInstructions: [
+                code.Make(code.OpConstant, 0),
+                code.Make(code.OpConstant, 1),
+                code.Make(code.OpGreaterThan),
+                code.Make(code.OpPop),
+            ],
+        },
+        {
+            input: "1 == 2",
+            expectedConstants: [1, 2],
+            expectedInstructions: [
+                code.Make(code.OpConstant, 0),
+                code.Make(code.OpConstant, 1),
+                code.Make(code.OpEqual),
+                code.Make(code.OpPop),
+            ],
+        },
+        {
+            input: "1 != 2",
+            expectedConstants: [1, 2],
+            expectedInstructions: [
+                code.Make(code.OpConstant, 0),
+                code.Make(code.OpConstant, 1),
+                code.Make(code.OpNotEqual),
+                code.Make(code.OpPop),
+            ],
+        },
+        {
+            input: "1 != 2",
+            expectedConstants: [1, 2],
+            expectedInstructions: [
+                code.Make(code.OpConstant, 0),
+                code.Make(code.OpConstant, 1),
+                code.Make(code.OpNotEqual),
+                code.Make(code.OpPop),
+            ],
+        },
+        {
+            input: "true == false",
+            expectedConstants: [],
+            expectedInstructions: [
+                code.Make(code.OpTrue),
+                code.Make(code.OpFalse),
+                code.Make(code.OpEqual),
+                code.Make(code.OpPop),
+            ],
+        },
+        {
+            input: "true != false",
+            expectedConstants: [],
+            expectedInstructions: [
+                code.Make(code.OpTrue),
+                code.Make(code.OpFalse),
+                code.Make(code.OpNotEqual),
+                code.Make(code.OpPop),
+            ],
+        }]
+
+        runCompilerTests(tests);
+    })
 })
 
 

@@ -47,6 +47,22 @@ export class Compiler {
                 break;
             case Ast.InfixExpression:
                 const infix = node as Ast.InfixExpression;
+                if(infix.operator === '<') {
+                    if(!infix.right) {
+                        return new Error('Infix expression is missing right hand side');
+                    }
+                    let error = this.compile(infix.right);
+                    if(error) {
+                        return error;
+                    }
+
+                    error = this.compile(infix.left);
+                    if(error) {
+                        return error;
+                    }
+                    this.emit(Code.OpGreaterThan);
+                    return;
+                }
                 let error = this.compile(infix.left);
                 if(error !== undefined) {
                     return error;
@@ -71,7 +87,17 @@ export class Compiler {
                     case "/":
                         this.emit(Code.OpDiv);
                         break;
+                    case ">":
+                        this.emit(Code.OpGreaterThan);
+                        break;
+                    case "==":
+                        this.emit(Code.OpEqual);
+                        break;
+                    case "!=":
+                        this.emit(Code.OpNotEqual);
+                        break;
                     default: 
+                        console.log('hm');
                         return new Error(`Unknown operator: ${infix.operator}`);
                 }
                 break;
@@ -82,6 +108,14 @@ export class Compiler {
                 }
                 const integer = new Obj.Integer(intLit.value);
                 this.emit(Code.OpConstant, this.addConstant(integer));
+                break;
+            case Ast.Boolean:
+                const bool = node as Ast.Boolean;
+                if(bool.value) {
+                    this.emit(Code.OpTrue);
+                } else {
+                    this.emit(Code.OpFalse);
+                }
         }
     }
 

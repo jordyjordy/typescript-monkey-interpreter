@@ -22,6 +22,12 @@ const testIntegerObject = (expected: number, actual?: Obj.Obj) => {
     expect(actualInteger.value).toEqual(expected);
 }
 
+const testBooleanObject = (expected: boolean, actual?: Obj.Obj) => {
+    expect(actual instanceof Obj.Bool).toBe(true);
+    const actualBoolean = actual as Obj.Bool;
+    expect(actualBoolean.value).toEqual(expected);
+}
+
 function runVmTests(tests: vmTestCase[]) {
     tests.forEach((test) => {
         const program = parse(test.input);
@@ -45,7 +51,11 @@ function runVmTests(tests: vmTestCase[]) {
 function testExpectedObject(expected:any, actual?: Obj.Obj) {
     switch(typeof expected) {
         case 'number':
-            testIntegerObject(expected as number, actual);
+            testIntegerObject(expected, actual);
+            break;
+        case 'boolean':
+            testBooleanObject(expected, actual);
+            break;
     }
 }
 
@@ -66,6 +76,32 @@ describe('vm tests', () => {
             { input: "5 * (2 + 10)", expected: 60 },
         ]
         
+        runVmTests(tests);
+    })
+
+    test('boolean expressions', () => {
+        const tests: vmTestCase[] = [
+            { input: "true", expected: true },
+            { input: "false", expected: false },
+            { input: "1 < 2", expected: true },
+            { input: "1 > 2", expected: false },
+            { input: "1 < 1", expected: false },
+            { input: "1 > 1", expected: false },
+            { input: "1 == 1", expected: true },
+            { input: "1 != 1", expected: false },
+            { input: "1 == 2", expected: false },
+            { input: "1 != 2", expected: true },
+            { input: "true == true", expected: true },
+            { input: "false == false", expected: true },
+            { input: "true == false", expected: false },
+            { input: "true != false", expected: true },
+            { input: "false != true", expected: true },
+            { input: "(1 < 2) == true", expected: true },
+            { input: "(1 < 2) == false", expected: false },
+            { input: "(1 > 2) == true", expected: false },
+            { input: "(1 > 2) == false", expected: true },
+        ];
+
         runVmTests(tests);
     })
 })
