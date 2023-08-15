@@ -45,6 +45,10 @@ export type Opcode = number;
 
 export const OpConstant: Opcode = 0;
 export const OpAdd: Opcode = 1;
+export const OpPop: Opcode = 2;
+export const OpSub: Opcode = 3;
+export const OpMul: Opcode = 4;
+export const OpDiv: Opcode = 5;
 
 export class Definition {
     name: string;
@@ -61,6 +65,10 @@ const bitmask = 0b11111111
 const definitions = {
     [OpConstant]: new Definition('OpConstant', [2]),
     [OpAdd]: new Definition('OpAdd', []),
+    [OpPop]: new Definition('OpPop', []),
+    [OpSub]: new Definition('OpSub', []),
+    [OpMul]: new Definition('OpMul', []),
+    [OpDiv]: new Definition('OpDiv', []),
 }
 
 export function Lookup(op: number) {

@@ -2,7 +2,9 @@ import Lexer from "./lexer";
 import { Parser } from "./parser";
 import { Eval } from "./evaluator";
 import { Program } from "./ast";
-import Environment from "./evaluator/environment";
+import Environment from "./evaluator/environment"
+import { Compiler } from "./compiler";
+import { Vm } from "./vm";
 
 const prompt =">> ";
 const MONKEY_FACE = `            __,__
@@ -39,16 +41,29 @@ function start() {
             process.stdout.write(`\n${prompt}`);
             return;
         }
-        const evaluated = Eval(program as Program, env);
-        if(evaluated) {
-            process.stdout.write(evaluated.inspect());
+        const compiler = new Compiler();
+        const compileErrors = compiler.compile(program!);
+        if(compileErrors) {
+            console.error(`Whoops compilation failed, ${compileErrors}`);
+            return;
+        }
+
+        const machine = new Vm(compiler.byteCode());
+        const vmError = machine.run();
+        if(vmError) {
+            console.error(`Whoops executing bytecode failed, ${compileErrors}`);
+            return;
+        }
+        const stackTop = machine.lastPoppedStackElem();
+        
+        if(stackTop) {
+            process.stdout.write(stackTop?.inspect() ?? '');
             process.stdout.write(`\n${prompt}`);
         } else {
             process.stdout.write(prompt);
         }
     })
 };
-
 
 export default {
     start

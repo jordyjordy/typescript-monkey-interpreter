@@ -43,6 +43,7 @@ export class Compiler {
                 } else {
                     return new Error('Expressions statement is missing expression');
                 }
+                this.emit(Code.OpPop);
                 break;
             case Ast.InfixExpression:
                 const infix = node as Ast.InfixExpression;
@@ -60,6 +61,15 @@ export class Compiler {
                 switch(infix.operator) {
                     case "+":
                         this.emit(Code.OpAdd);
+                        break;
+                    case "-":
+                        this.emit(Code.OpSub)
+                        break;
+                    case "*":
+                        this.emit(Code.OpMul);
+                        break;
+                    case "/":
+                        this.emit(Code.OpDiv);
                         break;
                     default: 
                         return new Error(`Unknown operator: ${infix.operator}`);

@@ -27,6 +27,41 @@ export class Vm {
         return this.stack[this.sp - 1];
     }
 
+    lastPoppedStackElem(): Obj.Obj | undefined {
+        return this.stack[this.sp];
+    }
+
+    executeBinaryOperation(op: Code.Opcode): Error | void {
+        const right = this.pop();
+        const left = this.pop();
+        if(left.type() === Obj.INTEGER_OBJ && right.type() === Obj.INTEGER_OBJ) {
+            this.executeBinaryIntegerOperation(op, left, right);
+        }
+    }
+    executeBinaryIntegerOperation(op: Code.Opcode, left: Obj.Obj, right: Obj.Obj): Error | void {
+        const leftValue = (left as Obj.Integer).value;
+        const rightValue = (right as Obj.Integer).value;
+        let result: number;
+        switch (op) {
+            case Code.OpAdd:
+                result = leftValue + rightValue;
+                break;
+            case Code.OpSub:
+                result = leftValue - rightValue;
+                break;
+            case Code.OpMul:
+                result = leftValue * rightValue;
+                break;
+            case Code.OpDiv:
+                result = Math.floor(leftValue / rightValue);
+                break;
+            default:
+                return new Error(`Unknown integer operation: ${op}`);
+        }
+
+        return this.push(new Obj.Integer(result));
+    }
+
     run(): Error | void {
         
         for(let ip = 0; ip < this.instructions.length; ip++) {
@@ -40,13 +75,16 @@ export class Vm {
                     this.push(this.constants[constIndex]);
                     break;
                 case Code.OpAdd:
-                    const right = this.pop();
-                    const left = this.pop();
-                    const leftValue = (left as Obj.Integer).value;
-                    const rightValue = (right as Obj.Integer).value;
-
-                    const result = leftValue + rightValue;
-                    this.push(new Obj.Integer(result));
+                case Code.OpSub:
+                case Code.OpMul:
+                case Code.OpDiv:
+                    const error = this.executeBinaryOperation(op);
+                    if(error) {
+                        return error;
+                    }
+                    break;
+                case Code.OpPop:
+                    this.pop();
                     break;
             }
         }

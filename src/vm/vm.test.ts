@@ -36,7 +36,7 @@ function runVmTests(tests: vmTestCase[]) {
 
         expect(vmError).toBeUndefined();
 
-        const stackElement = vm.stackTop();
+        const stackElement = vm.lastPoppedStackElem();
 
         testExpectedObject(test.expected, stackElement);
     })
@@ -54,7 +54,16 @@ describe('vm tests', () => {
         const tests: vmTestCase[] = [
             { input:"1", expected: 1 },
             { input: "2", expected: 2},
-            { input: "1 + 2", expected: 3}, // FIXME 
+            { input: "1 + 2", expected: 3 },
+            { input: "1 - 2", expected: -1 },
+            { input: "1 * 2", expected: 2 },
+            { input: "4 / 2", expected: 2 },
+            { input: "50 / 2 * 2 + 10 - 5", expected: 55 },
+            { input: "5 + 5 + 5 + 5 - 10", expected: 10 },
+            { input: "2 * 2 * 2 * 2 * 2", expected: 32 },
+            { input: "5 * 2 + 10", expected: 20 },
+            { input: "5 + 2 * 10", expected: 25 },
+            { input: "5 * (2 + 10)", expected: 60 },
         ]
         
         runVmTests(tests);
