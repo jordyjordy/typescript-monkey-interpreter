@@ -188,7 +188,6 @@ export class Vm {
                     const pos = Code.ReadUint16(this.instructions.slice(ip + 1));
                     ip += 2;
                     const condition = this.pop();
-                    console.log(condition);
                     if(!this.isTruthy(condition)) {
                         ip = pos - 1;
                     }

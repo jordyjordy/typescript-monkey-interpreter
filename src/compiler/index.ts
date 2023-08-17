@@ -130,7 +130,6 @@ export class Compiler {
                         this.emit(Code.OpNotEqual);
                         break;
                     default: 
-                        console.log('hm');
                         return new Error(`Unknown operator: ${infix.operator}`);
                 }
                 break;

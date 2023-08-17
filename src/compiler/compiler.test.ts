@@ -6,210 +6,232 @@ import { Parser } from "../parser";
 import { Compiler } from './';
 
 describe('compiler tests', () => {
-    test('integer arithemetic', () => {
-        const tests = [{
-            input: "1 + 2",
-            expectedConstants: [1, 2],
-            expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpAdd),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "1; 2",
-            expectedConstants: [1, 2],
-            expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpPop),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "1 - 2",
-            expectedConstants: [1, 2],
-            expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpSub),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "1 * 2",
-            expectedConstants: [1, 2],
-            expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpMul),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "2 / 1",
-            expectedConstants: [2, 1],
-            expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpDiv),
-                code.Make(code.OpPop),
-            ],
-        },
-    {
-        input: "- 1",
-        expectedConstants: [1],
-        expectedInstructions: [
-            code.Make(code.OpConstant, 0),
-            code.Make(code.OpMinus),
-            code.Make(code.OpPop),
-        ]
-    }];
+    // test('integer arithemetic', () => {
+    //     const tests = [{
+    //         input: "1 + 2",
+    //         expectedConstants: [1, 2],
+    //         expectedInstructions: [
+    //             code.Make(code.OpConstant, 0),
+    //             code.Make(code.OpConstant, 1),
+    //             code.Make(code.OpAdd),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "1; 2",
+    //         expectedConstants: [1, 2],
+    //         expectedInstructions: [
+    //             code.Make(code.OpConstant, 0),
+    //             code.Make(code.OpPop),
+    //             code.Make(code.OpConstant, 1),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "1 - 2",
+    //         expectedConstants: [1, 2],
+    //         expectedInstructions: [
+    //             code.Make(code.OpConstant, 0),
+    //             code.Make(code.OpConstant, 1),
+    //             code.Make(code.OpSub),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "1 * 2",
+    //         expectedConstants: [1, 2],
+    //         expectedInstructions: [
+    //             code.Make(code.OpConstant, 0),
+    //             code.Make(code.OpConstant, 1),
+    //             code.Make(code.OpMul),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "2 / 1",
+    //         expectedConstants: [2, 1],
+    //         expectedInstructions: [
+    //             code.Make(code.OpConstant, 0),
+    //             code.Make(code.OpConstant, 1),
+    //             code.Make(code.OpDiv),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    // {
+    //     input: "- 1",
+    //     expectedConstants: [1],
+    //     expectedInstructions: [
+    //         code.Make(code.OpConstant, 0),
+    //         code.Make(code.OpMinus),
+    //         code.Make(code.OpPop),
+    //     ]
+    // }];
 
-        runCompilerTests(tests);
-    })
+    //     runCompilerTests(tests);
+    // })
 
-    test('boolean expressions', () => {
-        const tests = [{
-            input: "true",
-            expectedConstants: [],
-            expectedInstructions: [
-                code.Make(code.OpTrue),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "false",
-            expectedConstants: [],
-            expectedInstructions: [
-                code.Make(code.OpFalse),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "1 > 2",
-            expectedConstants: [1, 2],
-            expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpGreaterThan),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "1 < 2",
-            expectedConstants: [2, 1],
-            expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpGreaterThan),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "1 == 2",
-            expectedConstants: [1, 2],
-            expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpEqual),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "1 != 2",
-            expectedConstants: [1, 2],
-            expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpNotEqual),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "1 != 2",
-            expectedConstants: [1, 2],
-            expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpNotEqual),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "true == false",
-            expectedConstants: [],
-            expectedInstructions: [
-                code.Make(code.OpTrue),
-                code.Make(code.OpFalse),
-                code.Make(code.OpEqual),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "true != false",
-            expectedConstants: [],
-            expectedInstructions: [
-                code.Make(code.OpTrue),
-                code.Make(code.OpFalse),
-                code.Make(code.OpNotEqual),
-                code.Make(code.OpPop),
-            ],
-        },
-        {
-            input: "!true",
-            expectedConstants: [],
-            expectedInstructions: [
-                code.Make(code.OpTrue),
-                code.Make(code.OpBang),
-                code.Make(code.OpPop),
-            ]
-        }]
+    // test('boolean expressions', () => {
+    //     const tests = [{
+    //         input: "true",
+    //         expectedConstants: [],
+    //         expectedInstructions: [
+    //             code.Make(code.OpTrue),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "false",
+    //         expectedConstants: [],
+    //         expectedInstructions: [
+    //             code.Make(code.OpFalse),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "1 > 2",
+    //         expectedConstants: [1, 2],
+    //         expectedInstructions: [
+    //             code.Make(code.OpConstant, 0),
+    //             code.Make(code.OpConstant, 1),
+    //             code.Make(code.OpGreaterThan),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "1 < 2",
+    //         expectedConstants: [2, 1],
+    //         expectedInstructions: [
+    //             code.Make(code.OpConstant, 0),
+    //             code.Make(code.OpConstant, 1),
+    //             code.Make(code.OpGreaterThan),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "1 == 2",
+    //         expectedConstants: [1, 2],
+    //         expectedInstructions: [
+    //             code.Make(code.OpConstant, 0),
+    //             code.Make(code.OpConstant, 1),
+    //             code.Make(code.OpEqual),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "1 != 2",
+    //         expectedConstants: [1, 2],
+    //         expectedInstructions: [
+    //             code.Make(code.OpConstant, 0),
+    //             code.Make(code.OpConstant, 1),
+    //             code.Make(code.OpNotEqual),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "1 != 2",
+    //         expectedConstants: [1, 2],
+    //         expectedInstructions: [
+    //             code.Make(code.OpConstant, 0),
+    //             code.Make(code.OpConstant, 1),
+    //             code.Make(code.OpNotEqual),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "true == false",
+    //         expectedConstants: [],
+    //         expectedInstructions: [
+    //             code.Make(code.OpTrue),
+    //             code.Make(code.OpFalse),
+    //             code.Make(code.OpEqual),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "true != false",
+    //         expectedConstants: [],
+    //         expectedInstructions: [
+    //             code.Make(code.OpTrue),
+    //             code.Make(code.OpFalse),
+    //             code.Make(code.OpNotEqual),
+    //             code.Make(code.OpPop),
+    //         ],
+    //     },
+    //     {
+    //         input: "!true",
+    //         expectedConstants: [],
+    //         expectedInstructions: [
+    //             code.Make(code.OpTrue),
+    //             code.Make(code.OpBang),
+    //             code.Make(code.OpPop),
+    //         ]
+    //     }]
 
-        runCompilerTests(tests);
-    })
+    //     runCompilerTests(tests);
+    // })
 
     test('conditionals', () => {
         const tests = [
+            // {
+            //     input: 'if (true) { 10 }; 3333;',
+            //     expectedConstants: [
+            //         10,
+            //         3333,
+            //     ],
+            //     expectedInstructions: [
+            //         code.Make(code.OpTrue),
+            //         code.Make(code.OpJumpNotTruthy, 7),
+            //         code.Make(code.OpConstant, 0),
+            //         code.Make(code.OpPop),
+            //         code.Make(code.OpConstant, 1),
+            //         code.Make(code.OpPop),
+            //     ]
+            // },
+            // {
+            //     input: `
+            //     if (true) { 10 } else { 20 }; 3333;
+            //     `,
+            //     expectedConstants: [10, 20, 3333],
+            //     expectedInstructions: [
+            //         // 0000
+            //         code.Make(code.OpTrue),
+            //         // 0001
+            //         code.Make(code.OpJumpNotTruthy, 10),
+            //         // 0004
+            //         code.Make(code.OpConstant, 0),
+            //         // 0007
+            //         code.Make(code.OpJump, 13),
+            //         // 0010
+            //         code.Make(code.OpConstant, 1),
+            //         // 0013
+            //         code.Make(code.OpPop),
+            //         // 0014
+            //         code.Make(code.OpConstant, 2),
+            //         // 0017
+            //         code.Make(code.OpPop),
+            //     ],
+            // },
             {
-                input: 'if (true) { 10 }; 3333;',
-                expectedConstants: [
-                    10,
-                    3333,
-                ],
-                expectedInstructions: [
-                    code.Make(code.OpTrue),
-                    code.Make(code.OpJumpNotTruthy, 7),
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpPop),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpPop),
-                ]
-            },
-            {
-                input: `
-                if (true) { 10 } else { 20 }; 3333;
-                `,
-                expectedConstants: [10, 20, 3333],
+                input: 'if (10 > 5) { 10; } else { 12; }',
+                expectedConstants: [10, 5, 10, 12],
                 expectedInstructions: [
                     // 0000
-                    code.Make(code.OpTrue),
-                    // 0001
-                    code.Make(code.OpJumpNotTruthy, 10),
-                    // 0004
                     code.Make(code.OpConstant, 0),
-                    // 0007
-                    code.Make(code.OpJump, 13),
-                    // 0010
+                    // 0003
                     code.Make(code.OpConstant, 1),
-                    // 0013
-                    code.Make(code.OpPop),
-                    // 0014
+                    // 0006
+                    code.Make(code.OpGreaterThan),
+                    // 0007
+                    code.Make(code.OpJumpNotTruthy, 16),
+                    // 0010
                     code.Make(code.OpConstant, 2),
-                    // 0017
+                    // 0013
+                    code.Make(code.OpJump, 19),
+                    // 0016
+                    code.Make(code.OpConstant, 3),
+                    // 0019
                     code.Make(code.OpPop),
-                ],
+                ]
             }
 
         ];

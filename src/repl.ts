@@ -54,8 +54,9 @@ function start() {
             console.error(`Whoops executing bytecode failed, ${compileErrors}`);
             return;
         }
+
         const stackTop = machine.lastPoppedStackElem();
-        
+
         if(stackTop) {
             process.stdout.write(stackTop?.inspect() ?? '');
             process.stdout.write(`\n${prompt}`);
