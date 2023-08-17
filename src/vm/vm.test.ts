@@ -48,8 +48,8 @@ function runVmTests(tests: vmTestCase[]) {
     })
 }
 
-function testExpectedObject(expected:any, actual?: Obj.Obj) {
-    switch(typeof expected) {
+function testExpectedObject(expected: any, actual?: Obj.Obj) {
+    switch (typeof expected) {
         case 'number':
             testIntegerObject(expected, actual);
             break;
@@ -62,8 +62,8 @@ function testExpectedObject(expected:any, actual?: Obj.Obj) {
 describe('vm tests', () => {
     test('integer arithmetic', () => {
         const tests: vmTestCase[] = [
-            { input:"1", expected: 1 },
-            { input: "2", expected: 2},
+            { input: "1", expected: 1 },
+            { input: "2", expected: 2 },
             { input: "1 + 2", expected: 3 },
             { input: "1 - 2", expected: -1 },
             { input: "1 * 2", expected: 2 },
@@ -74,34 +74,44 @@ describe('vm tests', () => {
             { input: "5 * 2 + 10", expected: 20 },
             { input: "5 + 2 * 10", expected: 25 },
             { input: "5 * (2 + 10)", expected: 60 },
+            { input:  "-5", expected: - 5},
+            { input:  "-10", expected: - 10},
+            { input:  "-50 + 100 + -50, ", expected: 0},
+            { input:  "(5 + 10 * 2 + 15 / 3) * 2 + -10", expected: 50},
         ]
-        
-        runVmTests(tests);
+
+    runVmTests(tests);
     })
 
-    test('boolean expressions', () => {
-        const tests: vmTestCase[] = [
-            { input: "true", expected: true },
-            { input: "false", expected: false },
-            { input: "1 < 2", expected: true },
-            { input: "1 > 2", expected: false },
-            { input: "1 < 1", expected: false },
-            { input: "1 > 1", expected: false },
-            { input: "1 == 1", expected: true },
-            { input: "1 != 1", expected: false },
-            { input: "1 == 2", expected: false },
-            { input: "1 != 2", expected: true },
-            { input: "true == true", expected: true },
-            { input: "false == false", expected: true },
-            { input: "true == false", expected: false },
-            { input: "true != false", expected: true },
-            { input: "false != true", expected: true },
-            { input: "(1 < 2) == true", expected: true },
-            { input: "(1 < 2) == false", expected: false },
-            { input: "(1 > 2) == true", expected: false },
-            { input: "(1 > 2) == false", expected: true },
-        ];
+test('boolean expressions', () => {
+    const tests: vmTestCase[] = [
+        { input: "true", expected: true },
+        { input: "false", expected: false },
+        { input: "1 < 2", expected: true },
+        { input: "1 > 2", expected: false },
+        { input: "1 < 1", expected: false },
+        { input: "1 > 1", expected: false },
+        { input: "1 == 1", expected: true },
+        { input: "1 != 1", expected: false },
+        { input: "1 == 2", expected: false },
+        { input: "1 != 2", expected: true },
+        { input: "true == true", expected: true },
+        { input: "false == false", expected: true },
+        { input: "true == false", expected: false },
+        { input: "true != false", expected: true },
+        { input: "false != true", expected: true },
+        { input: "(1 < 2) == true", expected: true },
+        { input: "(1 < 2) == false", expected: false },
+        { input: "(1 > 2) == true", expected: false },
+        { input: "(1 > 2) == false", expected: true },
+        { input: "!true", expected: false},
+        { input: "!false", expected: true},
+        { input: "!5", expected: false},
+        { input: "!!true", expected: true},
+        { input: "!!false", expected: false},
+        { input: "!!5", expected: true},
+    ];
 
-        runVmTests(tests);
-    })
+    runVmTests(tests);
+})
 })

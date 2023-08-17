@@ -99,6 +99,26 @@ export class Vm {
         }
     }
 
+    executeBangOperator(): Error | void {
+        const operand = this.pop();
+        switch(operand) {
+            case TRUE:
+                return this.push(FALSE);
+            case FALSE: 
+                return this.push(TRUE);
+            default:
+                return this.push(FALSE);
+        }
+    }
+
+    executeMinusOperator(): Error | void {
+        const operand = this.pop();
+        if(operand.type() !== Obj.INTEGER_OBJ) {
+            return new Error(`unsupported type for negation: ${operand.type()}`);
+        }
+        return this.push(new Obj.Integer(-(operand as Obj.Integer).value));
+    }
+
     run(): Error | void {
         
         for(let ip = 0; ip < this.instructions.length; ip++) {
@@ -140,6 +160,20 @@ export class Vm {
                 case Code.OpGreaterThan: {
                     const err = this.executeComparison(op);
                     if(err) {
+                        return err;
+                    }
+                    break;
+                }
+                case Code.OpBang: {
+                    const err = this.executeBangOperator();
+                    if (err) {
+                        return err;
+                    }
+                    break;
+                }
+                case Code.OpMinus: {
+                    const err = this.executeMinusOperator();
+                    if (err) {
                         return err;
                     }
                     break;

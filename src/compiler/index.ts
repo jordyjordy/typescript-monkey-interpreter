@@ -33,6 +33,25 @@ export class Compiler {
                     }
                 })
                 break;
+            case Ast.PrefixExpression:
+                const prefix = node as Ast.PrefixExpression;
+                if(!prefix.right) {
+                    return new Error('Prefix missing right side');
+                }
+                const err = this.compile(prefix.right);
+                if(err) {
+                    return err;
+                }
+                switch(prefix.operator) {
+                    case "!":
+                        this.emit(Code.OpBang);
+                        return;
+                    case "-":
+                        this.emit(Code.OpMinus);
+                        return;
+                    default:
+                        return new Error(`unknown operator: ${prefix.operator}`);
+                }
             case Ast.ExpressionStatement:
                 const expressionStmnt = node as Ast.ExpressionStatement;
                 if(expressionStmnt.expression) {
