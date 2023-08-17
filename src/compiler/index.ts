@@ -13,13 +13,27 @@ export class Bytecode {
     }
 }
 
+export class EmittedInstruction {
+    OpCode?: Code.Opcode;
+    position?: number;
+
+    constructor(OpCode?: Code.Opcode, position?: number) {
+        this.OpCode = OpCode;
+        this.position = position;
+    }
+}
+
 export class Compiler {
     instructions: Code.Instructions;
     constants: Obj.Obj[];
+    lastInstruction: EmittedInstruction;
+    previousInstruction: EmittedInstruction;
 
     constructor() {
         this.instructions = [];
         this.constants = [];
+        this.lastInstruction = new EmittedInstruction();
+        this.previousInstruction = new EmittedInstruction();
     }
 
     compile(node: Ast.Node): Error | void {
@@ -135,6 +149,60 @@ export class Compiler {
                 } else {
                     this.emit(Code.OpFalse);
                 }
+                break;
+            case Ast.IfExpression: {
+                const ifExp = node as Ast.IfExpression;
+                if(!ifExp.condition) {
+                    throw new Error('If expression missing conditions');
+                }
+                const err = this.compile(ifExp.condition);
+                if(err) {
+                    return err;
+                }
+                const jumpPosNotTruthy = this.emit(Code.OpJumpNotTruthy, 9999);
+                if(!ifExp.consequence) {
+                    return new Error('If expression missing consequence');
+                }
+                const consequenceError = this.compile(ifExp.consequence);
+                if(consequenceError) {
+                    return consequenceError;
+                }
+                if(this.lastInstructionIsPop()) {
+                    this.removeLastPop();
+                }
+                if(!ifExp.alternative) {
+                    const afterConsequencePos = this.instructions.length;
+                    this.changeOperand(jumpPosNotTruthy, afterConsequencePos);
+                } else {
+                    const jumpPos = this.emit(Code.OpJump, 9999);
+                    const afterConsequencePos = this.instructions.length;
+                    this.changeOperand(jumpPosNotTruthy, afterConsequencePos);
+                    
+                    const err = this.compile(ifExp.alternative);
+                    if(err) {
+                        return err;
+                    }
+
+                    if(this.lastInstructionIsPop()) {
+                        this.removeLastPop()
+                    }
+
+                    const afterAlternativePos = this.instructions.length;
+                    this.changeOperand(jumpPos, afterAlternativePos);
+                }
+
+                break;
+            }
+            case Ast.BlockStatement: {
+                const blockStmt = node as Ast.BlockStatement;
+                for(let i = 0; i < blockStmt.statements.length; i++) {
+                    const err = this.compile(blockStmt.statements[i]);
+                    if(err) {
+                        return err;
+                    }
+                }
+                return;             
+            }
         }
     }
 
@@ -146,6 +214,8 @@ export class Compiler {
     emit(op: Code.Opcode, ...operands: number[]) {
         const ins = Code.Make(op, ...operands);
         const pos = this.addInstruction(ins);
+
+        this.setLastInstruction(op, pos);
         return pos;
     }
 
@@ -157,5 +227,32 @@ export class Compiler {
 
     byteCode(): Bytecode {
         return new Bytecode(this.instructions, this.constants);
+    }
+
+    setLastInstruction(op: Code.Opcode, position: number) {
+        const previous = this.lastInstruction;
+        const last = new EmittedInstruction(op, position);
+        this.previousInstruction = previous;
+        this.lastInstruction = last;
+    }
+
+    lastInstructionIsPop(): boolean {
+        return this.lastInstruction.OpCode === Code.OpPop;
+    }
+    
+    removeLastPop() {
+        this.instructions = this.instructions.slice(0, this.lastInstruction.position);
+        this.lastInstruction = this.previousInstruction;
+    }
+
+    replaceInstruction(pos: number, newInstruction: Code.Instructions) {
+        this.instructions.splice(pos, newInstruction.length, ...newInstruction);
+    }
+
+    changeOperand(opPos: number, operand: number) {
+        const op = this.instructions[opPos] as Code.Opcode;
+        const newInstruction = Code.Make(op, operand);
+
+        this.replaceInstruction(opPos, newInstruction);
     }
 }

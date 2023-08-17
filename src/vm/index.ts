@@ -2,6 +2,7 @@ import * as Obj from "../object";
 import * as Code from "../code";
 import { Bytecode } from "../compiler";
 import { FALSE, TRUE } from "../evaluator";
+import { Boolean } from "../ast";
 
 const stackSize = 2048;
 
@@ -178,10 +179,33 @@ export class Vm {
                     }
                     break;
                 }
+                case Code.OpJump: {
+                    const pos = Code.ReadUint16(this.instructions.slice(ip + 1));
+                    ip = pos - 1; 
+                    break;
+                }
+                case Code.OpJumpNotTruthy: {
+                    const pos = Code.ReadUint16(this.instructions.slice(ip + 1));
+                    ip += 2;
+                    const condition = this.pop();
+                    console.log(condition);
+                    if(!this.isTruthy(condition)) {
+                        ip = pos - 1;
+                    }
+                }
                 case Code.OpPop:
                     this.pop();
                     break;
             }
+        }
+    }
+
+    isTruthy(obj: Obj.Obj): boolean {
+        switch(obj.type()) {
+            case Obj.BOOLEAN_OBJ:
+                return (obj as Obj.Bool).value;
+            default:
+                return true;
         }
     }
 

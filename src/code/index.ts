@@ -56,6 +56,8 @@ export const OpNotEqual: Opcode = 9;
 export const OpGreaterThan: Opcode = 10;
 export const OpMinus: Opcode = 11;
 export const OpBang: Opcode = 12;
+export const OpJumpNotTruthy: Opcode = 13;
+export const OpJump: Opcode = 14;
 
 export class Definition {
     name: string;
@@ -82,7 +84,9 @@ const definitions = {
     [OpNotEqual]: new Definition('OpNotEqual', []),
     [OpGreaterThan]: new Definition('OpGreaterThan', []),
     [OpMinus]: new Definition('OpMinus', []),
-    [OpBang]: new Definition('OpBang', [])
+    [OpBang]: new Definition('OpBang', []),
+    [OpJumpNotTruthy]: new Definition('OpJumpNotTruthy', [2]),
+    [OpJump]: new Definition('OpJump', [2]),
 }
 
 export function Lookup(op: number) {
