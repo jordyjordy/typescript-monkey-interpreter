@@ -169,14 +169,14 @@ export class Compiler {
                 if(this.lastInstructionIsPop()) {
                     this.removeLastPop();
                 }
+
+                const jumpPos = this.emit(Code.OpJump, 9999);
+                const afterConsequencePos = this.instructions.length;
+                this.changeOperand(jumpPosNotTruthy, afterConsequencePos);
+
                 if(!ifExp.alternative) {
-                    const afterConsequencePos = this.instructions.length;
-                    this.changeOperand(jumpPosNotTruthy, afterConsequencePos);
+                    this.emit(Code.OpNull);
                 } else {
-                    const jumpPos = this.emit(Code.OpJump, 9999);
-                    const afterConsequencePos = this.instructions.length;
-                    this.changeOperand(jumpPosNotTruthy, afterConsequencePos);
-                    
                     const err = this.compile(ifExp.alternative);
                     if(err) {
                         return err;
@@ -185,10 +185,9 @@ export class Compiler {
                     if(this.lastInstructionIsPop()) {
                         this.removeLastPop()
                     }
-
-                    const afterAlternativePos = this.instructions.length;
-                    this.changeOperand(jumpPos, afterAlternativePos);
                 }
+                const afterAlternativePos = this.instructions.length;
+                this.changeOperand(jumpPos, afterAlternativePos);
 
                 break;
             }

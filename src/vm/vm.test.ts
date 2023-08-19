@@ -4,6 +4,7 @@ import { Parser } from '../parser';
 import * as Obj from '../object';
 import { Compiler } from "../compiler";
 import { Vm } from './';
+import { NULL } from "../evaluator";
 
 function parse(input: string): Ast.Program | undefined {
     const l = new Lexer(input);
@@ -55,6 +56,11 @@ function testExpectedObject(expected: any, actual?: Obj.Obj) {
             break;
         case 'boolean':
             testBooleanObject(expected, actual);
+            break;
+        case 'object':
+            if(expected === null) {
+                expect(actual).toEqual(NULL);
+            }
             break;
     }
 }
@@ -123,6 +129,8 @@ describe('vm tests', () => {
             { input: "if (1 < 2) { 10 }", expected: 10 },
             { input: "if (1 < 2) { 10 } else { 20 }", expected: 10 },
             { input : "if (1 > 2) { 10 } else { 20 }", expected: 20 },
+            { input: "if (1 > 2) { 10 }", expected: null },
+            { input: "if (false) { 10 }", expected: null },
         ];
 
         runVmTests(tests);

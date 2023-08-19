@@ -1,7 +1,7 @@
 import * as Obj from "../object";
 import * as Code from "../code";
 import { Bytecode } from "../compiler";
-import { FALSE, TRUE } from "../evaluator";
+import { FALSE, NULL, TRUE } from "../evaluator";
 import { Boolean } from "../ast";
 
 const stackSize = 2048;
@@ -191,6 +191,13 @@ export class Vm {
                     if(!this.isTruthy(condition)) {
                         ip = pos - 1;
                     }
+                }
+                case Code.OpNull: {
+                    const err = this.push(NULL);
+                    if (err) {
+                        return err;
+                    }
+                    break;
                 }
                 case Code.OpPop:
                     this.pop();
