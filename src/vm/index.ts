@@ -107,6 +107,8 @@ export class Vm {
                 return this.push(FALSE);
             case FALSE: 
                 return this.push(TRUE);
+            case NULL:
+                return this.push(TRUE);
             default:
                 return this.push(FALSE);
         }
@@ -210,6 +212,8 @@ export class Vm {
         switch(obj.type()) {
             case Obj.BOOLEAN_OBJ:
                 return (obj as Obj.Bool).value;
+            case Obj.NULL_OBJ:
+                return false;
             default:
                 return true;
         }

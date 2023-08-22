@@ -110,12 +110,14 @@ describe('vm tests', () => {
             { input: "(1 < 2) == false", expected: false },
             { input: "(1 > 2) == true", expected: false },
             { input: "(1 > 2) == false", expected: true },
-            { input: "!true", expected: false},
-            { input: "!false", expected: true},
-            { input: "!5", expected: false},
-            { input: "!!true", expected: true},
-            { input: "!!false", expected: false},
-            { input: "!!5", expected: true},
+            { input: "!false", expected: true },
+            { input: "!true", expected: false },
+            { input: "!5", expected: false },
+            { input: "!!true", expected: true },
+            { input: "!!false", expected: false },
+            { input: "!!5", expected: true },
+            { input: "!(if (false) { 5; })", expected: true },
+
         ];
         runVmTests(tests);
     });
@@ -131,6 +133,7 @@ describe('vm tests', () => {
             { input : "if (1 > 2) { 10 } else { 20 }", expected: 20 },
             { input: "if (1 > 2) { 10 }", expected: null },
             { input: "if (false) { 10 }", expected: null },
+            { input: "if ((if (false) { 10 })) { 10 } else { 20 }", expected: 20 },
         ];
 
         runVmTests(tests);
