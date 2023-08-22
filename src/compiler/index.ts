@@ -3,6 +3,7 @@ import * as Code from "../code";
 import Lexer from "../lexer";
 import * as Obj from "../object";
 import { Parser } from "../parser";
+import { SymbolTable } from "./symbolTable";
 
 export class Bytecode {
     instructions: Code.Instructions;
@@ -28,12 +29,14 @@ export class Compiler {
     constants: Obj.Obj[];
     lastInstruction: EmittedInstruction;
     previousInstruction: EmittedInstruction;
+    symbolTable: SymbolTable;
 
     constructor() {
         this.instructions = [];
         this.constants = [];
         this.lastInstruction = new EmittedInstruction();
         this.previousInstruction = new EmittedInstruction();
+        this.symbolTable = new SymbolTable();
     }
 
     compile(node: Ast.Node): Error | void {
@@ -189,6 +192,28 @@ export class Compiler {
                 const afterAlternativePos = this.instructions.length;
                 this.changeOperand(jumpPos, afterAlternativePos);
 
+                break;
+            }
+            case Ast.LetStatement: {
+                const letNode = node as Ast.LetStatement;
+                if(!letNode.value) {
+                    return new Error('let statement is missing value');
+                }
+                const err = this.compile(letNode.value);
+                if(err) {
+                    return err;
+                }
+                const symbol = this.symbolTable.define(letNode.name?.value!);
+                this.emit(Code.OpSetGlobal, symbol.index);
+                break;
+            }
+            case Ast.Identifier: {
+                const identifier = node as Ast.Identifier;
+                const symbol = this.symbolTable.resolve(identifier.value);
+                if(!symbol) {
+                    return new Error(`undefined variable: ${identifier.value}`);
+                }
+                this.emit(Code.OpGetGlobal, symbol.index);
                 break;
             }
             case Ast.BlockStatement: {

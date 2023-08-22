@@ -59,6 +59,8 @@ export const OpBang: Opcode = 12;
 export const OpJumpNotTruthy: Opcode = 13;
 export const OpJump: Opcode = 14;
 export const OpNull: Opcode = 15;
+export const OpGetGlobal: Opcode = 16;
+export const OpSetGlobal: Opcode = 17;
 
 export class Definition {
     name: string;
@@ -89,6 +91,8 @@ const definitions = {
     [OpJumpNotTruthy]: new Definition('OpJumpNotTruthy', [2]),
     [OpJump]: new Definition('OpJump', [2]),
     [OpNull]: new Definition('OpNull', []),
+    [OpGetGlobal]: new Definition('OpGetGlobal', [2]),
+    [OpSetGlobal]: new Definition('OpSetGlobal', [2]),
 }
 
 export function Lookup(op: number) {

@@ -57,15 +57,15 @@ describe('compiler tests', () => {
                 code.Make(code.OpPop),
             ],
         },
-    {
-        input: "- 1",
-        expectedConstants: [1],
-        expectedInstructions: [
-            code.Make(code.OpConstant, 0),
-            code.Make(code.OpMinus),
-            code.Make(code.OpPop),
-        ]
-    }];
+        {
+            input: "- 1",
+            expectedConstants: [1],
+            expectedInstructions: [
+                code.Make(code.OpConstant, 0),
+                code.Make(code.OpMinus),
+                code.Make(code.OpPop),
+            ]
+        }];
 
         runCompilerTests(tests);
     })
@@ -246,10 +246,62 @@ describe('compiler tests', () => {
         ];
         runCompilerTests(tests);
     })
+
+    test('global let statements', () => {
+        const tests = [
+            {
+                input: `
+                let one = 1;
+                let two = 2;
+                `,
+                expectedConstants: [1, 2],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpSetGlobal, 0),
+                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpSetGlobal, 1),
+                ],
+            },
+            {
+                input: `
+                let one = 1;
+                one;
+                `,
+                expectedConstants: [1],
+                expectedInstructions: [
+                    //0000
+                    code.Make(code.OpConstant, 0),
+                    //0003
+                    code.Make(code.OpSetGlobal, 0),
+                    //0006
+                    code.Make(code.OpGetGlobal, 0),
+                    //0009
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: `
+                let one = 1;
+                let two = one;
+                two;
+                `,
+                expectedConstants: [1],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpSetGlobal, 0),
+                    code.Make(code.OpGetGlobal, 0),
+                    code.Make(code.OpSetGlobal, 1),
+                    code.Make(code.OpGetGlobal, 1),
+                    code.Make(code.OpPop),
+                ],
+            }
+        ];
+        runCompilerTests(tests);
+    })
 })
 
 
-const runCompilerTests = (tests: {input: string, expectedConstants: number[], expectedInstructions: number[][] }[]) => {
+const runCompilerTests = (tests: { input: string, expectedConstants: number[], expectedInstructions: number[][] }[]) => {
     tests.forEach((test) => {
         const compiler = new Compiler();
         const program = parse(test.input);
@@ -258,7 +310,7 @@ const runCompilerTests = (tests: {input: string, expectedConstants: number[], ex
         // expect(res).not.toBe(null);
 
         const byteCode = compiler.byteCode();
-
+        
         testInstructions(test.expectedInstructions, byteCode.instructions);
 
         testConstants(test.expectedConstants, byteCode.constants);
@@ -269,7 +321,7 @@ const testInstructions = (expectedInstructions: code.Instructions[], instruction
     const concatted = concatInstructions(expectedInstructions);
 
     expect(instructions.length).toEqual(concatted.length);
-    for(let i = 0; i < concatted.length; i++) {
+    for (let i = 0; i < concatted.length; i++) {
         expect(concatted[i]).toEqual(instructions[i]);
     }
 }
@@ -293,8 +345,8 @@ const testIntegerObject = (expected: number, actual: obj.Obj) => {
 
 const concatInstructions = (instructions: code.Instructions[]) => {
     const out: code.Instructions = [];
-    for(let i = 0; i < instructions.length; i++) {
-        out.push(...instructions[i]); 
+    for (let i = 0; i < instructions.length; i++) {
+        out.push(...instructions[i]);
     }
     return out;
 }
