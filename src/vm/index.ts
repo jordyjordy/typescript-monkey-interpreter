@@ -6,9 +6,13 @@ import { Boolean } from "../ast";
 
 const stackSize = 2048;
 
+export const globalSize = 65536;
+
+
 export class Vm {
     constants: Obj.Obj[];
     instructions: Code.Instructions;
+    globals: Obj.Obj[];
 
     stack: Obj.Obj[];
     sp: number;
@@ -17,9 +21,16 @@ export class Vm {
         this.instructions = bytecode.instructions;
         this.constants = bytecode.constants;
 
+        this.globals = new Array(globalSize);
         this.stack = new Array(stackSize);
         this.sp = 0;
 
+    }
+
+    static newWithGlobalsStore( byteCode: Bytecode, s: Obj.Obj[]) {
+        const vm = new Vm(byteCode);
+        vm.globals = s;
+        return vm;
     }
 
     stackTop(): Obj.Obj | undefined {
@@ -197,6 +208,24 @@ export class Vm {
                 case Code.OpNull: {
                     const err = this.push(NULL);
                     if (err) {
+                        return err;
+                    }
+                    break;
+                }
+                case Code.OpSetGlobal: {
+                    const globalIndex = Code.ReadUint16(this.instructions.slice(ip + 1));
+                    ip += 2;
+
+                    this.globals[globalIndex] = this.pop();
+                    break;
+                }
+                case Code.OpGetGlobal: {
+                    const globalIndex = Code.ReadUint16(this.instructions.slice(ip + 1));
+                    
+                    ip += 2;
+
+                    const err = this.push(this.globals[globalIndex]);
+                    if(err) {
                         return err;
                     }
                     break;

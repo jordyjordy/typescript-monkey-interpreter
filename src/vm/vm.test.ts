@@ -138,4 +138,14 @@ describe('vm tests', () => {
 
         runVmTests(tests);
     })
+
+    test('global let statements', () => {
+        const tests: vmTestCase[] = [
+            { input: "let one = 1; one", expected: 1},
+            { input: "let one = 1; let two = 2; one + two", expected: 3},
+            { input: "let one = 1; let two = one + one; one + two", expected: 3},
+        ];
+
+        runVmTests(tests);
+    })
 })

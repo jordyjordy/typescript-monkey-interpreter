@@ -39,6 +39,13 @@ export class Compiler {
         this.symbolTable = new SymbolTable();
     }
 
+    static newWithState(s: SymbolTable, constants: Obj.Obj[]) {
+        const compiler = new Compiler();
+        compiler.symbolTable = s;
+        compiler.constants = constants;
+        return compiler;
+    }
+
     compile(node: Ast.Node): Error | void {
         switch(node.constructor) {
             case Ast.Program:

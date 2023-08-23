@@ -4,7 +4,9 @@ import { Eval } from "./evaluator";
 import { Program } from "./ast";
 import Environment from "./evaluator/environment"
 import { Compiler } from "./compiler";
-import { Vm } from "./vm";
+import { Vm, globalSize } from "./vm";
+import * as Obj from "./object";
+import { SymbolTable } from "./compiler/symbolTable";
 
 const prompt =">> ";
 const MONKEY_FACE = `            __,__
@@ -22,6 +24,11 @@ const MONKEY_FACE = `            __,__
 
 function start() {
     const env = new Environment();
+
+    const constants: Obj.Obj[] = [];
+    const globals = new Array<Obj.Obj>(globalSize);
+    const symbolTable = new SymbolTable();
+
     process.stdin.resume();
     process.stdin.setEncoding('utf-8');
     process.stdout.write(prompt);
@@ -41,14 +48,15 @@ function start() {
             process.stdout.write(`\n${prompt}`);
             return;
         }
-        const compiler = new Compiler();
+        const compiler = Compiler.newWithState(symbolTable, constants);
         const compileErrors = compiler.compile(program!);
         if(compileErrors) {
             console.error(`Whoops compilation failed, ${compileErrors}`);
             return;
         }
+        const code = compiler.byteCode();
 
-        const machine = new Vm(compiler.byteCode());
+        const machine = Vm.newWithGlobalsStore(code, globals);
         const vmError = machine.run();
         if(vmError) {
             console.error(`Whoops executing bytecode failed, ${compileErrors}`);
