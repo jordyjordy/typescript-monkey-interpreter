@@ -157,6 +157,22 @@ export class Vm {
         return new Obj.ArrayLiteral(elements);
     }
 
+    buildHash(startIndex: number, endIndex: number): Obj.Hash | Error {
+        const hashedPairs = new Map<string, Obj.HashPair>();
+        for(let i = startIndex; i < endIndex; i+=2) {
+            const key = this.stack[i];
+            const value = this.stack[i + 1];
+            const pair = new Obj.HashPair(key, value);
+            if(!(key instanceof Obj.Hashable)) {
+                return new Error(`unusable as hash key: ${key}`);
+            }
+            const hashKey = key as Obj.IHashable;
+
+            hashedPairs.set(hashKey.hashKey().value , pair);
+        }
+        return new Obj.Hash(hashedPairs);
+    }
+
     run(): Error | void {
         
         for(let ip = 0; ip < this.instructions.length; ip++) {
@@ -261,6 +277,20 @@ export class Vm {
                     this.sp -= numElements;
                     const err = this.push(array);
 
+                    if(err) {
+                        return err;
+                    }
+                    break;
+                }
+                case Code.OpHash: {
+                    const numElements = Code.ReadUint16(this.instructions.slice(ip+ 1));
+                    ip += 2;
+                    const hash = this.buildHash(this.sp - numElements, this.sp);
+                    if(hash instanceof Error) {
+                        return hash;
+                    }
+                    this.sp -= numElements;
+                    const err = this.push(hash);
                     if(err) {
                         return err;
                     }

@@ -44,6 +44,18 @@ const testArrayObject = (expected: Array<any>, actual?: Obj.Obj) => {
     })
 }
 
+const testHashObject = (expected: Map<Obj.HashKey, any>, actual?: Obj.Obj) => {
+    expect(actual instanceof Obj.Hash).toBe(true);
+    const hashObj = actual as Obj.Hash;
+    expect(hashObj.pairs.size).toEqual(expected.size);
+    expected.forEach((expectedValue, expectedKey) => {
+        expect(expectedKey instanceof Obj.HashKey);
+        const hashableKey = expectedKey as Obj.HashKey;
+        const pair = hashObj.pairs.get(hashableKey.value);
+        testIntegerObject(expectedValue, pair?.value);
+    })
+}
+
 function runVmTests(tests: vmTestCase[]) {
     tests.forEach((test) => {
         const program = parse(test.input);
@@ -78,6 +90,9 @@ function testExpectedObject(expected: any, actual?: Obj.Obj) {
             }
             if(Array.isArray(expected)) {
                 testArrayObject(expected, actual);
+            }
+            if(expected instanceof Map) {
+                testHashObject(expected, actual);
             }
             break;
         case 'string':
@@ -188,6 +203,41 @@ describe('vm tests', () => {
             { input:  "[1 + 2, 3 * 4, 5 + 6]", expected:[3, 12, 11]},
         ];
 
+        runVmTests(tests);
+    })
+
+    test('hash literals', () => {
+        const tests: vmTestCase[] = [
+            {
+                input: "{}", expected: new Map([]),
+            },
+            {
+                input: "{1: 2, 2: 3}",
+                expected: new Map([
+                    [
+                        new Obj.Integer(1).hashKey(),
+                        2
+                    ],
+                    [
+                        new Obj.Integer(2).hashKey(),
+                        3
+                    ]
+                ]),
+            },
+            {
+                input: "{1 + 1: 2 * 2, 3 + 3: 4 * 4}",
+                expected: new Map([
+                    [
+                        new Obj.Integer(2).hashKey(),
+                        4
+                    ],
+                    [
+                        new Obj.Integer(6).hashKey(),
+                        16
+                    ]
+                ]),
+            },      
+        ];
         runVmTests(tests);
     })
 })

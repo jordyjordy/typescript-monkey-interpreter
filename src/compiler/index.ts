@@ -240,6 +240,18 @@ export class Compiler {
                 this.emit(Code.OpArray, arrayLit.elements.length);
                 break;
             }
+            case Ast.HashLiteral: {
+                const hashLit = node as Ast.HashLiteral;
+                const entries = hashLit.pairs.entries();
+                let entry = entries.next();
+                while(!entry.done) {
+                    this.compile(entry.value[0]);
+                    this.compile(entry.value[1]);
+                    entry = entries.next();
+                }
+                this.emit(Code.OpHash, hashLit.pairs.size * 2);
+                break;
+            }
             case Ast.BlockStatement: {
                 const blockStmt = node as Ast.BlockStatement;
                 for(let i = 0; i < blockStmt.statements.length; i++) {
