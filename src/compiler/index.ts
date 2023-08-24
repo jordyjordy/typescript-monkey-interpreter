@@ -229,6 +229,17 @@ export class Compiler {
                 this.emit(Code.OpConstant, this.addConstant(string));
                 break;
             }
+            case Ast.ArrayLiteral: {
+                const arrayLit = node as Ast.ArrayLiteral;
+                for(let i = 0; i < arrayLit.elements.length; i++) {
+                    const err = this.compile(arrayLit.elements[i]!);
+                    if(err) {
+                        return err;
+                    }
+                }
+                this.emit(Code.OpArray, arrayLit.elements.length);
+                break;
+            }
             case Ast.BlockStatement: {
                 const blockStmt = node as Ast.BlockStatement;
                 for(let i = 0; i < blockStmt.statements.length; i++) {

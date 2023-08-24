@@ -323,6 +323,49 @@ describe('compiler tests', () => {
 
         runCompilerTests(tests);
     })
+
+    test('array literals', () => {
+        const tests = [
+            {
+                input: "[]",
+                expectedConstants: [],
+                expectedInstructions: [
+                    code.Make(code.OpArray, 0),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: "[1, 2, 3]",
+                expectedConstants: [1, 2, 3],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpArray, 3),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: "[1 + 2, 3 - 4, 5 * 6]",
+                expectedConstants: [1, 2, 3, 4, 5, 6],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpAdd),
+                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpConstant, 3),
+                    code.Make(code.OpSub),
+                    code.Make(code.OpConstant, 4),
+                    code.Make(code.OpConstant, 5),
+                    code.Make(code.OpMul),
+                    code.Make(code.OpArray, 3),
+                    code.Make(code.OpPop),
+                ],
+            },
+        ];
+
+        runCompilerTests(tests);
+    })
 })
 
 

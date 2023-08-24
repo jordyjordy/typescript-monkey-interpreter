@@ -61,6 +61,7 @@ export const OpJump: Opcode = 14;
 export const OpNull: Opcode = 15;
 export const OpGetGlobal: Opcode = 16;
 export const OpSetGlobal: Opcode = 17;
+export const OpArray: Opcode = 18;
 
 export class Definition {
     name: string;
@@ -93,6 +94,7 @@ const definitions = {
     [OpNull]: new Definition('OpNull', []),
     [OpGetGlobal]: new Definition('OpGetGlobal', [2]),
     [OpSetGlobal]: new Definition('OpSetGlobal', [2]),
+    [OpArray]: new Definition('OpArray', [2]),
 }
 
 export function Lookup(op: number) {

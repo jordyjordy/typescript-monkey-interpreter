@@ -35,6 +35,15 @@ const testBooleanObject = (expected: boolean, actual?: Obj.Obj) => {
     expect(actualBoolean.value).toEqual(expected);
 }
 
+const testArrayObject = (expected: Array<any>, actual?: Obj.Obj) => {
+    expect(actual instanceof Obj.ArrayLiteral).toBe(true);
+    const arrayObj = actual as Obj.ArrayLiteral;
+    expect(arrayObj.elements.length).toEqual(expected.length);
+    arrayObj.elements.forEach((el, i) => {
+        testExpectedObject(el, arrayObj.elements[i]);
+    })
+}
+
 function runVmTests(tests: vmTestCase[]) {
     tests.forEach((test) => {
         const program = parse(test.input);
@@ -64,13 +73,17 @@ function testExpectedObject(expected: any, actual?: Obj.Obj) {
             testBooleanObject(expected, actual);
             break;
         case 'object':
-            if(expected === null) {
+            if (expected === null) {
                 expect(actual).toEqual(NULL);
+            }
+            if(Array.isArray(expected)) {
+                testArrayObject(expected, actual);
             }
             break;
         case 'string':
             testStringObject(expected, actual);
             break;
+        
     }
 }
 
@@ -89,13 +102,13 @@ describe('vm tests', () => {
             { input: "5 * 2 + 10", expected: 20 },
             { input: "5 + 2 * 10", expected: 25 },
             { input: "5 * (2 + 10)", expected: 60 },
-            { input:  "-5", expected: - 5},
-            { input:  "-10", expected: - 10},
-            { input:  "-50 + 100 + -50, ", expected: 0},
-            { input:  "(5 + 10 * 2 + 15 / 3) * 2 + -10", expected: 50},
+            { input: "-5", expected: - 5 },
+            { input: "-10", expected: - 10 },
+            { input: "-50 + 100 + -50, ", expected: 0 },
+            { input: "(5 + 10 * 2 + 15 / 3) * 2 + -10", expected: 50 },
         ]
 
-    runVmTests(tests);
+        runVmTests(tests);
     })
 
     test('boolean expressions', () => {
@@ -139,7 +152,7 @@ describe('vm tests', () => {
             { input: "if (1) { 10 }", expected: 10 },
             { input: "if (1 < 2) { 10 }", expected: 10 },
             { input: "if (1 < 2) { 10 } else { 20 }", expected: 10 },
-            { input : "if (1 > 2) { 10 } else { 20 }", expected: 20 },
+            { input: "if (1 > 2) { 10 } else { 20 }", expected: 20 },
             { input: "if (1 > 2) { 10 }", expected: null },
             { input: "if (false) { 10 }", expected: null },
             { input: "if ((if (false) { 10 })) { 10 } else { 20 }", expected: 20 },
@@ -150,9 +163,9 @@ describe('vm tests', () => {
 
     test('global let statements', () => {
         const tests: vmTestCase[] = [
-            { input: "let one = 1; one", expected: 1},
-            { input: "let one = 1; let two = 2; one + two", expected: 3},
-            { input: "let one = 1; let two = one + one; one + two", expected: 3},
+            { input: "let one = 1; one", expected: 1 },
+            { input: "let one = 1; let two = 2; one + two", expected: 3 },
+            { input: "let one = 1; let two = one + one; one + two", expected: 3 },
         ];
 
         runVmTests(tests);
@@ -164,7 +177,17 @@ describe('vm tests', () => {
             { input: `"mon" + "key"`, expected: "monkey" },
             { input: `"mon" + "key" + "banana"`, expected: "monkeybanana" },
         ];
-        
+
+        runVmTests(tests);
+    })
+
+    test('array literals', () => {
+        const tests: vmTestCase[] = [
+            { input:  "[]", expected: []},
+            { input:  "[1, 2, 3]", expected: [1, 2, 3]},
+            { input:  "[1 + 2, 3 * 4, 5 + 6]", expected:[3, 12, 11]},
+        ];
+
         runVmTests(tests);
     })
 })

@@ -149,6 +149,14 @@ export class Vm {
         return this.push(new Obj.Integer(-(operand as Obj.Integer).value));
     }
 
+    buildArray(startIndex: number, endIndex: number): Obj.ArrayLiteral {
+        const elements: Obj.Obj[] = new Array<Obj.Obj>(endIndex - startIndex);
+        for(let i = startIndex; i < endIndex; i++) {
+            elements[i - startIndex] = this.stack[i];
+        }
+        return new Obj.ArrayLiteral(elements);
+    }
+
     run(): Error | void {
         
         for(let ip = 0; ip < this.instructions.length; ip++) {
@@ -241,6 +249,18 @@ export class Vm {
                     ip += 2;
 
                     const err = this.push(this.globals[globalIndex]);
+                    if(err) {
+                        return err;
+                    }
+                    break;
+                }
+                case Code.OpArray: {
+                    const numElements = Code.ReadUint16(this.instructions.slice(ip + 1));
+                    ip += 2;
+                    const array = this.buildArray(this.sp - numElements, this.sp);
+                    this.sp -= numElements;
+                    const err = this.push(array);
+
                     if(err) {
                         return err;
                     }
