@@ -49,6 +49,8 @@ export class Vm {
         const left = this.pop();
         if(left.type() === Obj.INTEGER_OBJ && right.type() === Obj.INTEGER_OBJ) {
             this.executeBinaryIntegerOperation(op, left, right);
+        } else if(left.type() === Obj.STRING_OBJ && right.type() === Obj.STRING_OBJ) {
+            return this.executeBinaryStringOperation(op, left as Obj.String, right as Obj.String);
         }
     }
     
@@ -74,6 +76,20 @@ export class Vm {
         }
 
         return this.push(new Obj.Integer(result));
+    }
+
+    executeBinaryStringOperation(op: Code.Opcode, left: Obj.String, right: Obj.String) {
+        const leftValue = left.value;
+        const rightValue = right.value;
+        let result: string = '';
+        switch(op) {
+            case Code.OpAdd:
+                result = leftValue + rightValue;
+                break;
+            default: 
+                return new Error(`Unknown string operation: ${op}`);
+        }
+        return this.push(new Obj.String(result));
     }
 
     executeComparison(op: Code.Opcode): Error | void {

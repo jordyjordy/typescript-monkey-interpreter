@@ -298,10 +298,35 @@ describe('compiler tests', () => {
         ];
         runCompilerTests(tests);
     })
+
+    test('string expressions', () => {
+        const tests = [
+            {
+                input: `"monkey"`,
+                expectedConstants: ['monkey'],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: `"mon" + "key"`,
+                expectedConstants: ["mon", "key"],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpAdd),
+                    code.Make(code.OpPop),
+                ]
+            },
+        ];
+
+        runCompilerTests(tests);
+    })
 })
 
 
-const runCompilerTests = (tests: { input: string, expectedConstants: number[], expectedInstructions: number[][] }[]) => {
+const runCompilerTests = (tests: { input: string, expectedConstants: any[], expectedInstructions: number[][] }[]) => {
     tests.forEach((test) => {
         const compiler = new Compiler();
         const program = parse(test.input);
@@ -310,7 +335,7 @@ const runCompilerTests = (tests: { input: string, expectedConstants: number[], e
         // expect(res).not.toBe(null);
 
         const byteCode = compiler.byteCode();
-        
+
         testInstructions(test.expectedInstructions, byteCode.instructions);
 
         testConstants(test.expectedConstants, byteCode.constants);
@@ -332,7 +357,11 @@ const testConstants = (expected: any[], actual: obj.Obj[]) => {
         const constant = expected[i];
         switch (typeof constant) {
             case 'number':
-                testIntegerObject(constant, actual[i])
+                testIntegerObject(constant, actual[i]);
+                break;
+            case 'string':
+                testStringObject(constant, actual[i]);
+                break;
         }
     }
 }
@@ -341,6 +370,12 @@ const testIntegerObject = (expected: number, actual: obj.Obj) => {
     expect(actual instanceof obj.Integer).toBe(true);
     const actualInteger = actual as obj.Integer;
     expect(actualInteger.value).toEqual(expected);
+}
+
+const testStringObject = (expected: string, actual: obj.Obj) => {
+    expect(actual instanceof obj.String).toBe(true);
+    const actualString = actual as obj.String;
+    expect(actualString.value).toEqual(expected);
 }
 
 const concatInstructions = (instructions: code.Instructions[]) => {

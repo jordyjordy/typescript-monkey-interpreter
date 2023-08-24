@@ -223,6 +223,12 @@ export class Compiler {
                 this.emit(Code.OpGetGlobal, symbol.index);
                 break;
             }
+            case Ast.StringLiteral: {
+                const stringLit = node as Ast.StringLiteral;
+                const string = new Obj.String(stringLit.value);
+                this.emit(Code.OpConstant, this.addConstant(string));
+                break;
+            }
             case Ast.BlockStatement: {
                 const blockStmt = node as Ast.BlockStatement;
                 for(let i = 0; i < blockStmt.statements.length; i++) {

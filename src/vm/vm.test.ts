@@ -23,6 +23,12 @@ const testIntegerObject = (expected: number, actual?: Obj.Obj) => {
     expect(actualInteger.value).toEqual(expected);
 }
 
+const testStringObject = (expected: string, actual?: Obj.Obj) => {
+    expect(actual instanceof Obj.String).toBe(true);
+    const actualString = actual as Obj.String;
+    expect(actualString.value).toEqual(expected);
+}
+
 const testBooleanObject = (expected: boolean, actual?: Obj.Obj) => {
     expect(actual instanceof Obj.Bool).toBe(true);
     const actualBoolean = actual as Obj.Bool;
@@ -61,6 +67,9 @@ function testExpectedObject(expected: any, actual?: Obj.Obj) {
             if(expected === null) {
                 expect(actual).toEqual(NULL);
             }
+            break;
+        case 'string':
+            testStringObject(expected, actual);
             break;
     }
 }
@@ -146,6 +155,16 @@ describe('vm tests', () => {
             { input: "let one = 1; let two = one + one; one + two", expected: 3},
         ];
 
+        runVmTests(tests);
+    })
+
+    test('string expressions', () => {
+        const tests: vmTestCase[] = [
+            { input: `"monkey"`, expected: "monkey" },
+            { input: `"mon" + "key"`, expected: "monkey" },
+            { input: `"mon" + "key" + "banana"`, expected: "monkeybanana" },
+        ];
+        
         runVmTests(tests);
     })
 })
