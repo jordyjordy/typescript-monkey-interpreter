@@ -149,6 +149,39 @@ export class Vm {
         return this.push(new Obj.Integer(-(operand as Obj.Integer).value));
     }
 
+    executeIndexExpression(left: Obj.Obj, index: Obj.Obj): Error | void {
+        switch(true) {
+            case left.type() === Obj.ARRAY_OBJ && index.type() === Obj.INTEGER_OBJ:
+                return this.executeArrayIndexExpression(left as Obj.ArrayLiteral, index as Obj.Integer);
+            case left.type() === Obj.HASH_OBJ:
+                return this.executeHashIndexExpression(left as Obj.Hash, index);
+            default:
+                return new Error(`index operator not supported: ${left.type()}`);
+        }
+    }
+
+    executeArrayIndexExpression(left: Obj.ArrayLiteral, index: Obj.Integer): Error | void {
+        const i = index.value;
+        const max = left.elements.length - 1;
+        if(i < 0 || i > max) {
+            return this.push(NULL);
+        }
+        return this.push(left.elements[i]);
+    }
+
+    executeHashIndexExpression(left: Obj.Hash, index: Obj.Obj): Error | void {
+        if(!(index instanceof Obj.Hashable)) {
+            return new Error(`${index.type()} is not as suitable hashkey`);
+        }
+        const hashedIndex = index as Obj.IHashable;
+
+        const pair = left.pairs.get(hashedIndex.hashKey().value);
+        if(!pair) {
+            return this.push(NULL);
+        }
+        return this.push(pair.value);
+    }
+
     buildArray(startIndex: number, endIndex: number): Obj.ArrayLiteral {
         const elements: Obj.Obj[] = new Array<Obj.Obj>(endIndex - startIndex);
         for(let i = startIndex; i < endIndex; i++) {
@@ -294,6 +327,16 @@ export class Vm {
                     if(err) {
                         return err;
                     }
+                    break;
+                }
+                case Code.OpIndex: {
+                    const index = this.pop();
+                    const left = this.pop();
+                    const error = this.executeIndexExpression(left, index);
+                    if(error) {
+                        return error;
+                    }
+
                     break;
                 }
                 case Code.OpPop:

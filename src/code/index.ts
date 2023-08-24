@@ -63,6 +63,7 @@ export const OpGetGlobal: Opcode = 16;
 export const OpSetGlobal: Opcode = 17;
 export const OpArray: Opcode = 18;
 export const OpHash: Opcode = 19;
+export const OpIndex: Opcode = 20;
 
 export class Definition {
     name: string;
@@ -97,6 +98,7 @@ const definitions = {
     [OpSetGlobal]: new Definition('OpSetGlobal', [2]),
     [OpArray]: new Definition('OpArray', [2]),
     [OpHash]: new Definition('OpHash', [2]),
+    [OpIndex]: new Definition('OpIndex', []),
 }
 
 export function Lookup(op: number) {

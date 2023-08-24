@@ -410,6 +410,57 @@ describe('compiler tests', () => {
         ];
         runCompilerTests(tests);
     })
+
+    test('index expressions', () => {
+        const tests = [
+            {
+                input: "[1, 2, 3][1 + 1]",
+                expectedConstants: [1, 2, 3, 1, 1],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpArray, 3),
+                    code.Make(code.OpConstant, 3),
+                    code.Make(code.OpConstant, 4),
+                    code.Make(code.OpAdd),
+                    code.Make(code.OpIndex),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: "{1: 2}[2 - 1]",
+                expectedConstants: [1, 2, 2, 1],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpHash, 2),
+                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpConstant, 3),
+                    code.Make(code.OpSub),
+                    code.Make(code.OpIndex),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: "[1, 2, 3][0 + 2]",
+                expectedConstants: [1, 2, 3, 0, 2],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpArray, 3),
+                    code.Make(code.OpConstant, 3),
+                    code.Make(code.OpConstant, 4),
+                    code.Make(code.OpAdd),
+                    code.Make(code.OpIndex),
+                    code.Make(code.OpPop),
+                ]
+            }
+        ];
+
+        runCompilerTests(tests);
+    })
 })
 
 
@@ -431,7 +482,6 @@ const runCompilerTests = (tests: { input: string, expectedConstants: any[], expe
 
 const testInstructions = (expectedInstructions: code.Instructions[], instructions: code.Instructions) => {
     const concatted = concatInstructions(expectedInstructions);
-
     expect(instructions.length).toEqual(concatted.length);
     for (let i = 0; i < concatted.length; i++) {
         expect(concatted[i]).toEqual(instructions[i]);

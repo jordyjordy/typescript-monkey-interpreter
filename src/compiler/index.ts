@@ -89,6 +89,7 @@ export class Compiler {
                 this.emit(Code.OpPop);
                 break;
             case Ast.InfixExpression:
+                console.log('resolving infix');
                 const infix = node as Ast.InfixExpression;
                 if(infix.operator === '<') {
                     if(!infix.right) {
@@ -145,7 +146,7 @@ export class Compiler {
                 break;
             case Ast.IntegerLiteral:
                 const intLit = node as Ast.IntegerLiteral;
-                if(!intLit.value) {
+                if(intLit.value === undefined) {
                     return new Error('IntegerLiteral is missing a value');
                 }
                 const integer = new Obj.Integer(intLit.value);
@@ -250,6 +251,23 @@ export class Compiler {
                     entry = entries.next();
                 }
                 this.emit(Code.OpHash, hashLit.pairs.size * 2);
+                break;
+            }
+            case Ast.IndexExpression: {
+                console.log('resolving index?');
+                const indexExpr = node as Ast.IndexExpression;
+                const leftError = this.compile(indexExpr.left);
+                console.log(leftError);
+                if(leftError) {
+                    return leftError;
+                }
+                console.log(indexExpr.index);
+                const indexError = this.compile(indexExpr.index!);
+                console.log(indexError);
+                if(indexError) {
+                    return indexError;
+                }
+                this.emit(Code.OpIndex);
                 break;
             }
             case Ast.BlockStatement: {
