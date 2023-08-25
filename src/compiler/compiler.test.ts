@@ -461,6 +461,87 @@ describe('compiler tests', () => {
 
         runCompilerTests(tests);
     })
+
+    test('functions', () => {
+        const tests = [
+            {
+                input: `fn() { return 5 + 10 }`,
+                expectedConstants: [
+                    5,
+                    10,
+                    [
+                        code.Make(code.OpConstant, 0),
+                        code.Make(code.OpConstant, 1),
+                        code.Make(code.OpAdd),
+                        code.Make(code.OpReturnValue),
+                    ],
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: `fn() { 5 + 10 }`,
+                expectedConstants: [
+                    5,
+                    10,
+                    [
+                        code.Make(code.OpConstant, 0),
+                        code.Make(code.OpConstant, 1),
+                        code.Make(code.OpAdd),
+                        code.Make(code.OpReturnValue),
+                    ],
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: `fn() { 1; 2 }`,
+                expectedConstants: [
+                    1,
+                    2,
+                    [
+                        code.Make(code.OpConstant, 0),
+                        code.Make(code.OpPop),
+                        code.Make(code.OpConstant, 1),
+                        code.Make(code.OpReturnValue),
+                    ],
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpPop),
+                ],
+            },
+        ];
+        runCompilerTests(tests);
+    });
+
+    test('compiler scopes', () => {
+        const compiler = new Compiler();
+        expect(compiler.scopeIndex).toBe(0);
+        compiler.emit(code.OpMul);
+        compiler.enterScope();
+        expect(compiler.scopeIndex).toBe(1);
+        compiler.emit(code.OpSub);
+        expect(compiler.scopes[compiler.scopeIndex].instructions.length).toBe(1);
+    
+        let last = compiler.scopes[compiler.scopeIndex].lastInstruction;
+        expect(last?.OpCode).toEqual(code.OpSub);
+        compiler.leaveScope();
+        expect(compiler.scopeIndex).toBe(0);
+
+        compiler.emit(code.OpAdd);
+        expect(compiler.scopes[compiler.scopeIndex].instructions.length).toBe(2);
+
+        last = compiler.scopes[compiler.scopeIndex].lastInstruction;
+        expect(last?.OpCode).toEqual(code.OpAdd);
+        const previous = compiler.scopes[compiler.scopeIndex].previousInstruction;
+        expect(previous?.OpCode).toEqual(code.OpMul);
+
+    })
 })
 
 
@@ -482,6 +563,8 @@ const runCompilerTests = (tests: { input: string, expectedConstants: any[], expe
 
 const testInstructions = (expectedInstructions: code.Instructions[], instructions: code.Instructions) => {
     const concatted = concatInstructions(expectedInstructions);
+    // console.log(instructions.toString());
+    // console.log(new code.Instructions(...concatted).toString())
     expect(instructions.length).toEqual(concatted.length);
     for (let i = 0; i < concatted.length; i++) {
         expect(concatted[i]).toEqual(instructions[i]);
@@ -499,6 +582,11 @@ const testConstants = (expected: any[], actual: obj.Obj[]) => {
             case 'string':
                 testStringObject(constant, actual[i]);
                 break;
+            case 'object':
+                if(constant instanceof Array) {
+                    expect(actual[i] instanceof obj.CompiledFunction).toBe(true);
+                    const error = testInstructions(constant, (actual[i] as obj.CompiledFunction).instructions)
+                }
         }
     }
 }

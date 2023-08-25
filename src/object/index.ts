@@ -1,5 +1,6 @@
 import { BlockStatement, Identifier } from "../ast";
 import Environment from "../evaluator/environment";
+import * as Code from '../code';
 import crypto from 'crypto';
 
 type ObjectType = string;
@@ -10,6 +11,7 @@ const NULL_OBJ = "NULL";
 const RETURN_VALUE_OBJ = "RETURN_VALUE";
 const ERROR_OBJ = 'ERROR';
 const FUNCTION_OBJ = 'FUNCTION';
+const COMPILED_FUNCTION_OBJ = 'COMPILED_FUNCTION_OBJ';
 const STRING_OBJ = 'STRING';
 const BUILTIN_OBJ = 'BUILTIN';
 const ARRAY_OBJ = 'ARRAY';
@@ -106,6 +108,21 @@ class InterpretError implements Obj {
 
     inspect() {
         return `ERROR: ${this.message}`;
+    }
+}
+
+class CompiledFunction implements Obj {
+    instructions: Code.Instructions;
+    constructor(instructions: Code.Instructions) {
+        this.instructions = instructions;
+    }
+
+    type() {
+        return COMPILED_FUNCTION_OBJ;
+    }
+
+    inspect() {
+        return this.toString();
     }
 }
 
@@ -225,6 +242,7 @@ export {
     Bool,
     ReturnValue,
     InterpretError,
+    CompiledFunction,
     Function,
     String,
     BuiltIn,
@@ -235,6 +253,7 @@ export {
     BOOLEAN_OBJ,
     RETURN_VALUE_OBJ,
     ERROR_OBJ,
+    COMPILED_FUNCTION_OBJ,
     FUNCTION_OBJ,
     STRING_OBJ,
     BUILTIN_OBJ,
