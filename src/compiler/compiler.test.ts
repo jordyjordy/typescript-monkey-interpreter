@@ -1,6 +1,6 @@
-import * as ast from "../ast";
-import * as code from "../code"
-import * as obj from "../object";
+import * as Ast from "../ast";
+import * as Code from "../code"
+import * as Obj from "../object";
 import Lexer from "../lexer";
 import { Parser } from "../parser";
 import { Compiler } from './';
@@ -12,59 +12,59 @@ describe('compiler tests', () => {
             input: "1 + 2",
             expectedConstants: [1, 2],
             expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpAdd),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpConstant, 0),
+                Code.Make(Code.OpConstant, 1),
+                Code.Make(Code.OpAdd),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "1; 2",
             expectedConstants: [1, 2],
             expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpPop),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpConstant, 0),
+                Code.Make(Code.OpPop),
+                Code.Make(Code.OpConstant, 1),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "1 - 2",
             expectedConstants: [1, 2],
             expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpSub),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpConstant, 0),
+                Code.Make(Code.OpConstant, 1),
+                Code.Make(Code.OpSub),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "1 * 2",
             expectedConstants: [1, 2],
             expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpMul),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpConstant, 0),
+                Code.Make(Code.OpConstant, 1),
+                Code.Make(Code.OpMul),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "2 / 1",
             expectedConstants: [2, 1],
             expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpDiv),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpConstant, 0),
+                Code.Make(Code.OpConstant, 1),
+                Code.Make(Code.OpDiv),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "- 1",
             expectedConstants: [1],
             expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpMinus),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpConstant, 0),
+                Code.Make(Code.OpMinus),
+                Code.Make(Code.OpPop),
             ]
         }];
 
@@ -76,95 +76,95 @@ describe('compiler tests', () => {
             input: "true",
             expectedConstants: [],
             expectedInstructions: [
-                code.Make(code.OpTrue),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpTrue),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "false",
             expectedConstants: [],
             expectedInstructions: [
-                code.Make(code.OpFalse),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpFalse),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "1 > 2",
             expectedConstants: [1, 2],
             expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpGreaterThan),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpConstant, 0),
+                Code.Make(Code.OpConstant, 1),
+                Code.Make(Code.OpGreaterThan),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "1 < 2",
             expectedConstants: [2, 1],
             expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpGreaterThan),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpConstant, 0),
+                Code.Make(Code.OpConstant, 1),
+                Code.Make(Code.OpGreaterThan),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "1 == 2",
             expectedConstants: [1, 2],
             expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpEqual),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpConstant, 0),
+                Code.Make(Code.OpConstant, 1),
+                Code.Make(Code.OpEqual),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "1 != 2",
             expectedConstants: [1, 2],
             expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpNotEqual),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpConstant, 0),
+                Code.Make(Code.OpConstant, 1),
+                Code.Make(Code.OpNotEqual),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "1 != 2",
             expectedConstants: [1, 2],
             expectedInstructions: [
-                code.Make(code.OpConstant, 0),
-                code.Make(code.OpConstant, 1),
-                code.Make(code.OpNotEqual),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpConstant, 0),
+                Code.Make(Code.OpConstant, 1),
+                Code.Make(Code.OpNotEqual),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "true == false",
             expectedConstants: [],
             expectedInstructions: [
-                code.Make(code.OpTrue),
-                code.Make(code.OpFalse),
-                code.Make(code.OpEqual),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpTrue),
+                Code.Make(Code.OpFalse),
+                Code.Make(Code.OpEqual),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "true != false",
             expectedConstants: [],
             expectedInstructions: [
-                code.Make(code.OpTrue),
-                code.Make(code.OpFalse),
-                code.Make(code.OpNotEqual),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpTrue),
+                Code.Make(Code.OpFalse),
+                Code.Make(Code.OpNotEqual),
+                Code.Make(Code.OpPop),
             ],
         },
         {
             input: "!true",
             expectedConstants: [],
             expectedInstructions: [
-                code.Make(code.OpTrue),
-                code.Make(code.OpBang),
-                code.Make(code.OpPop),
+                Code.Make(Code.OpTrue),
+                Code.Make(Code.OpBang),
+                Code.Make(Code.OpPop),
             ]
         }]
 
@@ -181,21 +181,21 @@ describe('compiler tests', () => {
                 ],
                 expectedInstructions: [
                     // 0000
-                    code.Make(code.OpTrue),
+                    Code.Make(Code.OpTrue),
                     // 0001
-                    code.Make(code.OpJumpNotTruthy, 7),
+                    Code.Make(Code.OpJumpNotTruthy, 7),
                     // 0004
-                    code.Make(code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 0),
                     // 0007
-                    code.Make(code.OpJump, 8),
+                    Code.Make(Code.OpJump, 8),
                     // 0010
-                    code.Make(code.OpNull),
+                    Code.Make(Code.OpNull),
                     // 0011
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpPop),
                     // 0012
-                    code.Make(code.OpConstant, 1),
+                    Code.Make(Code.OpConstant, 1),
                     // 0015
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpPop),
                 ]
             },
             {
@@ -205,21 +205,21 @@ describe('compiler tests', () => {
                 expectedConstants: [10, 20, 3333],
                 expectedInstructions: [
                     // 0000
-                    code.Make(code.OpTrue),
+                    Code.Make(Code.OpTrue),
                     // 0001
-                    code.Make(code.OpJumpNotTruthy, 7),
+                    Code.Make(Code.OpJumpNotTruthy, 7),
                     // 0004
-                    code.Make(code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 0),
                     // 0007
-                    code.Make(code.OpJump, 9),
+                    Code.Make(Code.OpJump, 9),
                     // 0010
-                    code.Make(code.OpConstant, 1),
+                    Code.Make(Code.OpConstant, 1),
                     // 0013
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpPop),
                     // 0014
-                    code.Make(code.OpConstant, 2),
+                    Code.Make(Code.OpConstant, 2),
                     // 0017
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -227,21 +227,21 @@ describe('compiler tests', () => {
                 expectedConstants: [10, 5, 10, 12],
                 expectedInstructions: [
                     // 0000
-                    code.Make(code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 0),
                     // 0003
-                    code.Make(code.OpConstant, 1),
+                    Code.Make(Code.OpConstant, 1),
                     // 0006
-                    code.Make(code.OpGreaterThan),
+                    Code.Make(Code.OpGreaterThan),
                     // 0007
-                    code.Make(code.OpJumpNotTruthy, 11),
+                    Code.Make(Code.OpJumpNotTruthy, 11),
                     // 0010
-                    code.Make(code.OpConstant, 2),
+                    Code.Make(Code.OpConstant, 2),
                     // 0013
-                    code.Make(code.OpJump, 13),
+                    Code.Make(Code.OpJump, 13),
                     // 0016
-                    code.Make(code.OpConstant, 3),
+                    Code.Make(Code.OpConstant, 3),
                     // 0019
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpPop),
                 ]
             }
         ];
@@ -257,10 +257,10 @@ describe('compiler tests', () => {
                 `,
                 expectedConstants: [1, 2],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpSetGlobal, 1),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpSetGlobal, 1),
                 ],
             },
             {
@@ -271,13 +271,13 @@ describe('compiler tests', () => {
                 expectedConstants: [1],
                 expectedInstructions: [
                     //0000
-                    code.Make(code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 0),
                     //0003
-                    code.Make(code.OpSetGlobal, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
                     //0006
-                    code.Make(code.OpGetGlobal, 0),
+                    Code.Make(Code.OpGetGlobal, 0),
                     //0009
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -288,12 +288,12 @@ describe('compiler tests', () => {
                 `,
                 expectedConstants: [1],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpSetGlobal, 1),
-                    code.Make(code.OpGetGlobal, 1),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpGetGlobal, 0),
+                    Code.Make(Code.OpSetGlobal, 1),
+                    Code.Make(Code.OpGetGlobal, 1),
+                    Code.Make(Code.OpPop),
                 ],
             }
         ];
@@ -306,18 +306,18 @@ describe('compiler tests', () => {
                 input: `"monkey"`,
                 expectedConstants: ['monkey'],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
                 input: `"mon" + "key"`,
                 expectedConstants: ["mon", "key"],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpAdd),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpAdd),
+                    Code.Make(Code.OpPop),
                 ]
             },
         ];
@@ -331,36 +331,36 @@ describe('compiler tests', () => {
                 input: "[]",
                 expectedConstants: [],
                 expectedInstructions: [
-                    code.Make(code.OpArray, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpArray, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
                 input: "[1, 2, 3]",
                 expectedConstants: [1, 2, 3],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpConstant, 2),
-                    code.Make(code.OpArray, 3),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpConstant, 2),
+                    Code.Make(Code.OpArray, 3),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
                 input: "[1 + 2, 3 - 4, 5 * 6]",
                 expectedConstants: [1, 2, 3, 4, 5, 6],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpAdd),
-                    code.Make(code.OpConstant, 2),
-                    code.Make(code.OpConstant, 3),
-                    code.Make(code.OpSub),
-                    code.Make(code.OpConstant, 4),
-                    code.Make(code.OpConstant, 5),
-                    code.Make(code.OpMul),
-                    code.Make(code.OpArray, 3),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpAdd),
+                    Code.Make(Code.OpConstant, 2),
+                    Code.Make(Code.OpConstant, 3),
+                    Code.Make(Code.OpSub),
+                    Code.Make(Code.OpConstant, 4),
+                    Code.Make(Code.OpConstant, 5),
+                    Code.Make(Code.OpMul),
+                    Code.Make(Code.OpArray, 3),
+                    Code.Make(Code.OpPop),
                 ],
             },
         ];
@@ -374,38 +374,38 @@ describe('compiler tests', () => {
                 input: "{}",
                 expectedConstants: [],
                 expectedInstructions: [
-                    code.Make(code.OpHash, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpHash, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
                 input: "{1: 2, 3: 4, 5: 6}",
                 expectedConstants: [1, 2, 3, 4, 5, 6],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpConstant, 2),
-                    code.Make(code.OpConstant, 3),
-                    code.Make(code.OpConstant, 4),
-                    code.Make(code.OpConstant, 5),
-                    code.Make(code.OpHash, 6),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpConstant, 2),
+                    Code.Make(Code.OpConstant, 3),
+                    Code.Make(Code.OpConstant, 4),
+                    Code.Make(Code.OpConstant, 5),
+                    Code.Make(Code.OpHash, 6),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
                 input: "{1: 2 + 3, 4: 5 * 6}",
                 expectedConstants: [1, 2, 3, 4, 5, 6],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpConstant, 2),
-                    code.Make(code.OpAdd),
-                    code.Make(code.OpConstant, 3),
-                    code.Make(code.OpConstant, 4),
-                    code.Make(code.OpConstant, 5),
-                    code.Make(code.OpMul),
-                    code.Make(code.OpHash, 4),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpConstant, 2),
+                    Code.Make(Code.OpAdd),
+                    Code.Make(Code.OpConstant, 3),
+                    Code.Make(Code.OpConstant, 4),
+                    Code.Make(Code.OpConstant, 5),
+                    Code.Make(Code.OpMul),
+                    Code.Make(Code.OpHash, 4),
+                    Code.Make(Code.OpPop),
                 ],
             }
         ];
@@ -418,44 +418,44 @@ describe('compiler tests', () => {
                 input: "[1, 2, 3][1 + 1]",
                 expectedConstants: [1, 2, 3, 1, 1],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpConstant, 2),
-                    code.Make(code.OpArray, 3),
-                    code.Make(code.OpConstant, 3),
-                    code.Make(code.OpConstant, 4),
-                    code.Make(code.OpAdd),
-                    code.Make(code.OpIndex),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpConstant, 2),
+                    Code.Make(Code.OpArray, 3),
+                    Code.Make(Code.OpConstant, 3),
+                    Code.Make(Code.OpConstant, 4),
+                    Code.Make(Code.OpAdd),
+                    Code.Make(Code.OpIndex),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
                 input: "{1: 2}[2 - 1]",
                 expectedConstants: [1, 2, 2, 1],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpHash, 2),
-                    code.Make(code.OpConstant, 2),
-                    code.Make(code.OpConstant, 3),
-                    code.Make(code.OpSub),
-                    code.Make(code.OpIndex),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpHash, 2),
+                    Code.Make(Code.OpConstant, 2),
+                    Code.Make(Code.OpConstant, 3),
+                    Code.Make(Code.OpSub),
+                    Code.Make(Code.OpIndex),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
                 input: "[1, 2, 3][0 + 2]",
                 expectedConstants: [1, 2, 3, 0, 2],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpConstant, 2),
-                    code.Make(code.OpArray, 3),
-                    code.Make(code.OpConstant, 3),
-                    code.Make(code.OpConstant, 4),
-                    code.Make(code.OpAdd),
-                    code.Make(code.OpIndex),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpConstant, 2),
+                    Code.Make(Code.OpArray, 3),
+                    Code.Make(Code.OpConstant, 3),
+                    Code.Make(Code.OpConstant, 4),
+                    Code.Make(Code.OpAdd),
+                    Code.Make(Code.OpIndex),
+                    Code.Make(Code.OpPop),
                 ]
             }
         ];
@@ -471,15 +471,15 @@ describe('compiler tests', () => {
                     5,
                     10,
                     [
-                        code.Make(code.OpConstant, 0),
-                        code.Make(code.OpConstant, 1),
-                        code.Make(code.OpAdd),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpConstant, 0),
+                        Code.Make(Code.OpConstant, 1),
+                        Code.Make(Code.OpAdd),
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 2, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 2, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -488,15 +488,15 @@ describe('compiler tests', () => {
                     5,
                     10,
                     [
-                        code.Make(code.OpConstant, 0),
-                        code.Make(code.OpConstant, 1),
-                        code.Make(code.OpAdd),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpConstant, 0),
+                        Code.Make(Code.OpConstant, 1),
+                        Code.Make(Code.OpAdd),
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 2, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 2, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -505,15 +505,15 @@ describe('compiler tests', () => {
                     1,
                     2,
                     [
-                        code.Make(code.OpConstant, 0),
-                        code.Make(code.OpPop),
-                        code.Make(code.OpConstant, 1),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpConstant, 0),
+                        Code.Make(Code.OpPop),
+                        Code.Make(Code.OpConstant, 1),
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 2, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 2, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
         ];
@@ -525,26 +525,26 @@ describe('compiler tests', () => {
         expect(compiler.scopeIndex).toBe(0);
 
         const globalTable = compiler.symbolTable;
-        compiler.emit(code.OpMul);
+        compiler.emit(Code.OpMul);
         compiler.enterScope();
         expect(compiler.scopeIndex).toBe(1);
-        compiler.emit(code.OpSub);
+        compiler.emit(Code.OpSub);
         expect(compiler.scopes[compiler.scopeIndex].instructions.length).toBe(1);
 
         let last = compiler.scopes[compiler.scopeIndex].lastInstruction;
-        expect(last?.OpCode).toEqual(code.OpSub);
+        expect(last?.OpCode).toEqual(Code.OpSub);
 
         expect((compiler.symbolTable as EnclosedSymbolTable).parentTable).toBe(globalTable)
         compiler.leaveScope();
         expect(compiler.scopeIndex).toBe(0);
 
-        compiler.emit(code.OpAdd);
+        compiler.emit(Code.OpAdd);
         expect(compiler.scopes[compiler.scopeIndex].instructions.length).toBe(2);
 
         last = compiler.scopes[compiler.scopeIndex].lastInstruction;
-        expect(last?.OpCode).toEqual(code.OpAdd);
+        expect(last?.OpCode).toEqual(Code.OpAdd);
         const previous = compiler.scopes[compiler.scopeIndex].previousInstruction;
-        expect(previous?.OpCode).toEqual(code.OpMul);
+        expect(previous?.OpCode).toEqual(Code.OpMul);
 
         expect(compiler.symbolTable).toBe(globalTable);
 
@@ -556,12 +556,12 @@ describe('compiler tests', () => {
                 input: `fn() { }`,
                 expectedConstants: [
                     [
-                        code.Make(code.OpReturn),
+                        Code.Make(Code.OpReturn),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 0, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 0, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
         ]
@@ -576,14 +576,14 @@ describe('compiler tests', () => {
                 expectedConstants: [
                     24,
                     [
-                        code.Make(code.OpConstant, 0), // The literal "24"
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpConstant, 0), // The literal "24"
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 1, 0), // The compiled function
-                    code.Make(code.OpCall, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 1, 0), // The compiled function
+                    Code.Make(Code.OpCall, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -595,18 +595,18 @@ describe('compiler tests', () => {
                     5,
                     10,
                     [
-                        code.Make(code.OpConstant, 0),
-                        code.Make(code.OpConstant, 1),
-                        code.Make(code.OpAdd),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpConstant, 0),
+                        Code.Make(Code.OpConstant, 1),
+                        Code.Make(Code.OpAdd),
+                        Code.Make(Code.OpReturnValue),
                     ]
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 2, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpCall, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 2, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpGetGlobal, 0),
+                    Code.Make(Code.OpCall, 0),
+                    Code.Make(Code.OpPop),
                 ]
             },
             {
@@ -617,16 +617,16 @@ describe('compiler tests', () => {
                 expectedConstants: [
                     24,
                     [
-                        code.Make(code.OpConstant, 0), // The literal "24"
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpConstant, 0), // The literal "24"
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 1, 0), // The compiled function
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpCall, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 1, 0), // The compiled function
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpGetGlobal, 0),
+                    Code.Make(Code.OpCall, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -636,17 +636,17 @@ describe('compiler tests', () => {
                 `,
                 expectedConstants: [
                     [
-                        code.Make(code.OpReturn),
+                        Code.Make(Code.OpReturn),
                     ],
                     24,
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 0, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpCall, 1),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 0, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpGetGlobal, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpCall, 1),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -656,21 +656,21 @@ describe('compiler tests', () => {
                 `,
                 expectedConstants: [
                     [
-                        code.Make(code.OpReturn),
+                        Code.Make(Code.OpReturn),
                     ],
                     24,
                     25,
                     26,
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 0, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpConstant, 2),
-                    code.Make(code.OpConstant, 3),
-                    code.Make(code.OpCall, 3),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 0, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpGetGlobal, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpConstant, 2),
+                    Code.Make(Code.OpConstant, 3),
+                    Code.Make(Code.OpCall, 3),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -680,18 +680,18 @@ describe('compiler tests', () => {
                 `,
                 expectedConstants: [
                     [
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpReturnValue),
                     ],
                     24,
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 0, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpCall, 1),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 0, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpGetGlobal, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpCall, 1),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -701,26 +701,26 @@ describe('compiler tests', () => {
                 `,
                 expectedConstants: [
                     [
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpPop),
-                        code.Make(code.OpGetLocal, 1),
-                        code.Make(code.OpPop),
-                        code.Make(code.OpGetLocal, 2),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpPop),
+                        Code.Make(Code.OpGetLocal, 1),
+                        Code.Make(Code.OpPop),
+                        Code.Make(Code.OpGetLocal, 2),
+                        Code.Make(Code.OpReturnValue),
                     ],
                     24,
                     25,
                     26,
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 0, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpConstant, 1),
-                    code.Make(code.OpConstant, 2),
-                    code.Make(code.OpConstant, 3),
-                    code.Make(code.OpCall, 3),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 0, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpGetGlobal, 0),
+                    Code.Make(Code.OpConstant, 1),
+                    Code.Make(Code.OpConstant, 2),
+                    Code.Make(Code.OpConstant, 3),
+                    Code.Make(Code.OpCall, 3),
+                    Code.Make(Code.OpPop),
                 ],
             }
         ];
@@ -737,15 +737,15 @@ describe('compiler tests', () => {
                 expectedConstants: [
                     55,
                     [
-                        code.Make(code.OpGetGlobal, 0),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpGetGlobal, 0),
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpClosure, 1, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpClosure, 1, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -758,15 +758,15 @@ describe('compiler tests', () => {
                 expectedConstants: [
                     55,
                     [
-                        code.Make(code.OpConstant, 0),
-                        code.Make(code.OpSetLocal, 0),
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpConstant, 0),
+                        Code.Make(Code.OpSetLocal, 0),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 1, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 1, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -781,19 +781,19 @@ describe('compiler tests', () => {
                     55,
                     77,
                     [
-                        code.Make(code.OpConstant, 0),
-                        code.Make(code.OpSetLocal, 0),
-                        code.Make(code.OpConstant, 1),
-                        code.Make(code.OpSetLocal, 1),
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpGetLocal, 1),
-                        code.Make(code.OpAdd),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpConstant, 0),
+                        Code.Make(Code.OpSetLocal, 0),
+                        Code.Make(Code.OpConstant, 1),
+                        Code.Make(Code.OpSetLocal, 1),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpGetLocal, 1),
+                        Code.Make(Code.OpAdd),
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 2, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 2, 0),
+                    Code.Make(Code.OpPop),
                 ],
             }
         ];
@@ -811,21 +811,21 @@ describe('compiler tests', () => {
                     1,
                     [
                         // 0000
-                        code.Make(code.OpConstant, 0),
+                        Code.Make(Code.OpConstant, 0),
                         // 0003
-                        code.Make(code.OpSetLocal, 0),
+                        Code.Make(Code.OpSetLocal, 0),
                         // 0005
-                        code.Make(code.OpGetLocal, 0),
+                        Code.Make(Code.OpGetLocal, 0),
                         // 0007
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpReturnValue),
                     ]
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 1, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpCall, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 1, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpGetGlobal, 0),
+                    Code.Make(Code.OpCall, 0),
+                    Code.Make(Code.OpPop),
                 ],
 
             },
@@ -842,30 +842,30 @@ describe('compiler tests', () => {
                 `,
                 expectedConstants: [1],
                 expectedInstructions: [
-                    code.Make(code.OpGetBuiltin, 0),
-                    code.Make(code.OpArray, 0),
-                    code.Make(code.OpCall, 1),
-                    code.Make(code.OpPop),
-                    code.Make(code.OpGetBuiltin, 4),
-                    code.Make(code.OpArray, 0),
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpCall, 2),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpGetBuiltin, 0),
+                    Code.Make(Code.OpArray, 0),
+                    Code.Make(Code.OpCall, 1),
+                    Code.Make(Code.OpPop),
+                    Code.Make(Code.OpGetBuiltin, 4),
+                    Code.Make(Code.OpArray, 0),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpCall, 2),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
                 input: `fn() { len([]) }`,
                 expectedConstants: [
                     [
-                        code.Make(code.OpGetBuiltin, 0),
-                        code.Make(code.OpArray, 0),
-                        code.Make(code.OpCall, 1),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpGetBuiltin, 0),
+                        Code.Make(Code.OpArray, 0),
+                        Code.Make(Code.OpCall, 1),
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 0, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 0, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
         ];
@@ -884,20 +884,20 @@ describe('compiler tests', () => {
                 `,
                 expectedConstants: [
                     [
-                        code.Make(code.OpGetFree, 0),
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpAdd),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpGetFree, 0),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpAdd),
+                        Code.Make(Code.OpReturnValue),
                     ],
                     [
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpClosure, 0, 1),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpClosure, 0, 1),
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 1, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 1, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -912,28 +912,28 @@ describe('compiler tests', () => {
                 `,
                 expectedConstants: [
                     [
-                        code.Make(code.OpGetFree, 0),
-                        code.Make(code.OpGetFree, 1),
-                        code.Make(code.OpAdd),
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpAdd),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpGetFree, 0),
+                        Code.Make(Code.OpGetFree, 1),
+                        Code.Make(Code.OpAdd),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpAdd),
+                        Code.Make(Code.OpReturnValue),
                     ],
                     [
-                        code.Make(code.OpGetFree, 0),
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpClosure, 0, 2),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpGetFree, 0),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpClosure, 0, 2),
+                        Code.Make(Code.OpReturnValue),
                     ],
                     [
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpClosure, 1, 1),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpClosure, 1, 1),
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 2, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 2, 0),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -956,38 +956,38 @@ describe('compiler tests', () => {
                     77,
                     88,
                     [
-                        code.Make(code.OpConstant, 3),
-                        code.Make(code.OpSetLocal, 0),
-                        code.Make(code.OpGetGlobal, 0),
-                        code.Make(code.OpGetFree, 0),
-                        code.Make(code.OpAdd),
-                        code.Make(code.OpGetFree, 1),
-                        code.Make(code.OpAdd),
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpAdd),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpConstant, 3),
+                        Code.Make(Code.OpSetLocal, 0),
+                        Code.Make(Code.OpGetGlobal, 0),
+                        Code.Make(Code.OpGetFree, 0),
+                        Code.Make(Code.OpAdd),
+                        Code.Make(Code.OpGetFree, 1),
+                        Code.Make(Code.OpAdd),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpAdd),
+                        Code.Make(Code.OpReturnValue),
                     ],
                     [
-                        code.Make(code.OpConstant, 2),
-                        code.Make(code.OpSetLocal, 0),
-                        code.Make(code.OpGetFree, 0),
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpClosure, 4, 2),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpConstant, 2),
+                        Code.Make(Code.OpSetLocal, 0),
+                        Code.Make(Code.OpGetFree, 0),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpClosure, 4, 2),
+                        Code.Make(Code.OpReturnValue),
                     ],
                     [
-                        code.Make(code.OpConstant, 1),
-                        code.Make(code.OpSetLocal, 0),
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpClosure, 5, 1),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpConstant, 1),
+                        Code.Make(Code.OpSetLocal, 0),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpClosure, 5, 1),
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpClosure, 6, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpConstant, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpClosure, 6, 0),
+                    Code.Make(Code.OpPop),
                 ],
             }
         ];
@@ -1005,22 +1005,22 @@ describe('compiler tests', () => {
                 expectedConstants: [
                     1,
                     [
-                        code.Make(code.OpCurrentClosure),
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpConstant, 0),
-                        code.Make(code.OpSub),
-                        code.Make(code.OpCall, 1),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpCurrentClosure),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpConstant, 0),
+                        Code.Make(Code.OpSub),
+                        Code.Make(Code.OpCall, 1),
+                        Code.Make(Code.OpReturnValue),
                     ],
                     1,
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 1, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpConstant, 2),
-                    code.Make(code.OpCall, 1),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 1, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpGetGlobal, 0),
+                    Code.Make(Code.OpConstant, 2),
+                    Code.Make(Code.OpCall, 1),
+                    Code.Make(Code.OpPop),
                 ],
             },
             {
@@ -1034,29 +1034,29 @@ describe('compiler tests', () => {
                 expectedConstants: [
                     1,
                     [
-                        code.Make(code.OpCurrentClosure),
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpConstant, 0),
-                        code.Make(code.OpSub),
-                        code.Make(code.OpCall, 1),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpCurrentClosure),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpConstant, 0),
+                        Code.Make(Code.OpSub),
+                        Code.Make(Code.OpCall, 1),
+                        Code.Make(Code.OpReturnValue),
                     ],
                     1,
                     [
-                        code.Make(code.OpClosure, 1, 0),
-                        code.Make(code.OpSetLocal, 0),
-                        code.Make(code.OpGetLocal, 0),
-                        code.Make(code.OpConstant, 2),
-                        code.Make(code.OpCall, 1),
-                        code.Make(code.OpReturnValue),
+                        Code.Make(Code.OpClosure, 1, 0),
+                        Code.Make(Code.OpSetLocal, 0),
+                        Code.Make(Code.OpGetLocal, 0),
+                        Code.Make(Code.OpConstant, 2),
+                        Code.Make(Code.OpCall, 1),
+                        Code.Make(Code.OpReturnValue),
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpClosure, 3, 0),
-                    code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpCall, 0),
-                    code.Make(code.OpPop),
+                    Code.Make(Code.OpClosure, 3, 0),
+                    Code.Make(Code.OpSetGlobal, 0),
+                    Code.Make(Code.OpGetGlobal, 0),
+                    Code.Make(Code.OpCall, 0),
+                    Code.Make(Code.OpPop),
                 ],
             }
         ];
@@ -1070,7 +1070,7 @@ const runCompilerTests = (tests: { input: string, expectedConstants: any[], expe
         const compiler = new Compiler();
         const program = parse(test.input);
         expect(program).not.toBe(undefined);
-        const res = compiler.compile(program as ast.Program);
+        const res = compiler.compile(program as Ast.Program);
         // expect(res).not.toBe(null);
 
         const byteCode = compiler.byteCode();
@@ -1085,7 +1085,7 @@ const runCompilerTests = (tests: { input: string, expectedConstants: any[], expe
     })
 }
 
-const testInstructions = (expectedInstructions: code.Instructions[], instructions: code.Instructions) => {
+const testInstructions = (expectedInstructions: Code.Instructions[], instructions: Code.Instructions) => {
     const concatted = concatInstructions(expectedInstructions);
     // console.log(instructions.toString());
     // console.log(new code.Instructions(...concatted).toString())
@@ -1095,7 +1095,7 @@ const testInstructions = (expectedInstructions: code.Instructions[], instruction
     }
 }
 
-const testConstants = (expected: any[], actual: obj.Obj[]) => {
+const testConstants = (expected: any[], actual: Obj.Obj[]) => {
     expect(expected.length).toEqual(actual.length);
     for (let i = 0; i < expected.length; i++) {
         const constant = expected[i];
@@ -1108,34 +1108,34 @@ const testConstants = (expected: any[], actual: obj.Obj[]) => {
                 break;
             case 'object':
                 if (constant instanceof Array) {
-                    expect(actual[i] instanceof obj.CompiledFunction).toBe(true);
-                    const error = testInstructions(constant, (actual[i] as obj.CompiledFunction).instructions)
+                    expect(actual[i] instanceof Obj.CompiledFunction).toBe(true);
+                    const error = testInstructions(constant, (actual[i] as Obj.CompiledFunction).instructions)
                 }
         }
     }
 }
 
-const testIntegerObject = (expected: number, actual: obj.Obj) => {
-    expect(actual instanceof obj.Integer).toBe(true);
-    const actualInteger = actual as obj.Integer;
+const testIntegerObject = (expected: number, actual: Obj.Obj) => {
+    expect(actual instanceof Obj.Integer).toBe(true);
+    const actualInteger = actual as Obj.Integer;
     expect(actualInteger.value).toEqual(expected);
 }
 
-const testStringObject = (expected: string, actual: obj.Obj) => {
-    expect(actual instanceof obj.String).toBe(true);
-    const actualString = actual as obj.String;
+const testStringObject = (expected: string, actual: Obj.Obj) => {
+    expect(actual instanceof Obj.String).toBe(true);
+    const actualString = actual as Obj.String;
     expect(actualString.value).toEqual(expected);
 }
 
-const concatInstructions = (instructions: code.Instructions[]) => {
-    const out: code.Instructions = [];
+const concatInstructions = (instructions: Code.Instructions[]) => {
+    const out: Code.Instructions = [];
     for (let i = 0; i < instructions.length; i++) {
         out.push(...instructions[i]);
     }
     return out;
 }
 
-const parse = (input: string): ast.Program | undefined => {
+const parse = (input: string): Ast.Program | undefined => {
     const lexer = new Lexer(input);
     const parser = new Parser(lexer);
     const program = parser.ParseProgram();

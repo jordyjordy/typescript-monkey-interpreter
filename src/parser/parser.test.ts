@@ -1,11 +1,11 @@
-import * as ast from '../ast';
+import * as Ast from '../ast';
 import { Lexer } from '../lexer';
 import { Parser } from '.';
 
-function testLetStatement(s: ast.Statement, name: string) {
+function testLetStatement(s: Ast.Statement, name: string) {
     expect(s.TokenLiteral()).toEqual('let');
-    expect(s instanceof ast.LetStatement).toBe(true);
-    const x = s as ast.LetStatement;
+    expect(s instanceof Ast.LetStatement).toBe(true);
+    const x = s as Ast.LetStatement;
     expect(x.name?.value).toEqual(name);
     expect(x.name?.TokenLiteral()).toEqual(name);
 }
@@ -19,28 +19,28 @@ function checkParserErrors(parser: Parser) {
     expect(parser.errors.length).toEqual(0);
 }
 
-function testIntegerLiteral(exp: ast.Expression, value: number) {
-    expect(exp instanceof ast.IntegerLiteral).toBe(true);
-    const integ = exp as ast.IntegerLiteral;
+function testIntegerLiteral(exp: Ast.Expression, value: number) {
+    expect(exp instanceof Ast.IntegerLiteral).toBe(true);
+    const integ = exp as Ast.IntegerLiteral;
     expect(integ.value).toBe(value);
     expect(integ.TokenLiteral()).toBe(`${value}`);
 }
 
-function testIdentifier(exp: ast.Expression, value: string) {
-    expect(exp instanceof ast.Identifier).toBe(true);
-    const ident = exp as ast.Identifier;
+function testIdentifier(exp: Ast.Expression, value: string) {
+    expect(exp instanceof Ast.Identifier).toBe(true);
+    const ident = exp as Ast.Identifier;
     expect(ident.value).toEqual(value);
     expect(ident.TokenLiteral()).toEqual(value);
 }
 
-function testBooleanLiteral(exp: ast.Expression, value: boolean) {
-    expect(exp instanceof ast.Boolean).toBe(true);
-    const bool = exp as ast.Boolean;
+function testBooleanLiteral(exp: Ast.Expression, value: boolean) {
+    expect(exp instanceof Ast.Boolean).toBe(true);
+    const bool = exp as Ast.Boolean;
     expect(bool.value).toEqual(value);
     expect(bool.TokenLiteral()).toEqual(`${value}`);
 }
 
-function testLiteralExpression(exp: ast.Expression, expected: any) {
+function testLiteralExpression(exp: Ast.Expression, expected: any) {
     switch (typeof expected) {
         case 'number':
             testIntegerLiteral(exp, expected)
@@ -56,16 +56,16 @@ function testLiteralExpression(exp: ast.Expression, expected: any) {
     }
 }
 
-function testInfixExpression(exp: ast.Expression, left: any, operator: string, right: any) {
-    expect(exp instanceof ast.InfixExpression).toBe(true);
-    const infix = exp as ast.InfixExpression;
+function testInfixExpression(exp: Ast.Expression, left: any, operator: string, right: any) {
+    expect(exp instanceof Ast.InfixExpression).toBe(true);
+    const infix = exp as Ast.InfixExpression;
     
     testLiteralExpression(infix.left, left);
 
     expect(infix.operator).toEqual(operator);
 
     expect(infix.right).not.toEqual(undefined);
-    testLiteralExpression(infix.right as ast.Expression, right);
+    testLiteralExpression(infix.right as Ast.Expression, right);
 }
 
 describe('Parser tests', () => {
@@ -89,7 +89,7 @@ let foobar = 838383;
         ];
 
         for(let i = 0; i < tests.length; i++) {
-            const statement = program?.statements[i] as ast.Statement;
+            const statement = program?.statements[i] as Ast.Statement;
             testLetStatement(statement, tests[i][0])
         }
     })
@@ -107,7 +107,7 @@ return 993322;
         expect(program).not.toEqual(undefined)
         expect(program?.statements.length).toEqual(3);
         program?.statements.forEach((statement) => {
-            expect(statement instanceof ast.ReturnStatement).toBe(true);
+            expect(statement instanceof Ast.ReturnStatement).toBe(true);
             expect(statement.TokenLiteral()).toEqual('return');
         }) 
     })
@@ -119,10 +119,10 @@ return 993322;
         const program = parser.ParseProgram();
         checkParserErrors(parser);
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expressionStatement = program?.statements[0] as ast.ExpressionStatement;
-        expect(expressionStatement.expression instanceof ast.Identifier).toBe(true);
-        const ident = expressionStatement.expression as ast.Identifier;
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expressionStatement = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expressionStatement.expression instanceof Ast.Identifier).toBe(true);
+        const ident = expressionStatement.expression as Ast.Identifier;
         expect(ident.value).toEqual('foobar');
         expect(ident.TokenLiteral()).toEqual('foobar')
     })
@@ -134,10 +134,10 @@ return 993322;
         const program = parser.ParseProgram();
         checkParserErrors(parser);
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expressionStatement = program?.statements[0] as ast.ExpressionStatement;
-        expect(expressionStatement.expression instanceof ast.IntegerLiteral).toBe(true);
-        const literal = expressionStatement.expression as ast.IntegerLiteral;
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expressionStatement = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expressionStatement.expression instanceof Ast.IntegerLiteral).toBe(true);
+        const literal = expressionStatement.expression as Ast.IntegerLiteral;
         expect(literal.value).toBe(5);
         expect(literal.TokenLiteral()).toEqual('5');
     })
@@ -158,21 +158,21 @@ return 993322;
             const program = parser.ParseProgram();
             checkParserErrors(parser);
             expect(program?.statements.length).toBe(1);
-            expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-            const expressionStatement = program?.statements[0] as ast.ExpressionStatement;
-            expect(expressionStatement.expression instanceof ast.PrefixExpression).toBe(true);
-            const exp = expressionStatement.expression as ast.PrefixExpression;
+            expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+            const expressionStatement = program?.statements[0] as Ast.ExpressionStatement;
+            expect(expressionStatement.expression instanceof Ast.PrefixExpression).toBe(true);
+            const exp = expressionStatement.expression as Ast.PrefixExpression;
             expect(exp.operator).toEqual(prefix);
             expect(exp.right).not.toEqual(undefined);
             switch(typeof literal) {
                 case 'number':
-                    testIntegerLiteral(exp.right as ast.Expression, literal);
+                    testIntegerLiteral(exp.right as Ast.Expression, literal);
                     break;
                 case 'boolean':
-                    testBooleanLiteral(exp.right as ast.Expression, literal);
+                    testBooleanLiteral(exp.right as Ast.Expression, literal);
                     break;
                 case 'string':
-                    testIdentifier(exp.right as ast.Expression, literal);
+                    testIdentifier(exp.right as Ast.Expression, literal);
                     break;
             }
         })
@@ -208,10 +208,10 @@ return 993322;
             const program = parser.ParseProgram();
             checkParserErrors(parser);
             expect(program?.statements.length).toBe(1);
-            expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-            const exp = program?.statements[0] as ast.ExpressionStatement;
+            expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+            const exp = program?.statements[0] as Ast.ExpressionStatement;
             expect(exp.expression).not.toEqual(undefined);
-            testInfixExpression(exp.expression as ast.Expression, left, operator, right);
+            testInfixExpression(exp.expression as Ast.Expression, left, operator, right);
         })
     });
 
@@ -333,8 +333,8 @@ return 993322;
             const program = parser.ParseProgram();
             checkParserErrors(parser);
             const result = program?.string();
-            expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-            const exp = program?.statements[0] as ast.ExpressionStatement;
+            expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+            const exp = program?.statements[0] as Ast.ExpressionStatement;
             expect(result).toEqual(expected);
         })
     })
@@ -346,16 +346,16 @@ return 993322;
         const program = parser.ParseProgram();
         checkParserErrors(parser);
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expr = program?.statements[0] as ast.ExpressionStatement;
-        expect(expr.expression instanceof ast.IfExpression).toBe(true);
-        const ifexpr = expr.expression as ast.IfExpression;
-        testInfixExpression(ifexpr.condition as ast.Expression, 'x' , '<', 'y');
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expr.expression instanceof Ast.IfExpression).toBe(true);
+        const ifexpr = expr.expression as Ast.IfExpression;
+        testInfixExpression(ifexpr.condition as Ast.Expression, 'x' , '<', 'y');
         expect(ifexpr.consequence).not.toBe(undefined);
         expect(ifexpr.consequence?.statements.length).toBe(1);
-        expect(ifexpr.consequence?.statements[0] instanceof ast.ExpressionStatement);
-        const consequence = ifexpr.consequence?.statements[0] as ast.ExpressionStatement;
-        testIdentifier(consequence.expression as ast.Expression, 'x');
+        expect(ifexpr.consequence?.statements[0] instanceof Ast.ExpressionStatement);
+        const consequence = ifexpr.consequence?.statements[0] as Ast.ExpressionStatement;
+        testIdentifier(consequence.expression as Ast.Expression, 'x');
         expect(ifexpr.alternative).toEqual(undefined);
     })
 
@@ -366,21 +366,21 @@ return 993322;
         const program = parser.ParseProgram();
         checkParserErrors(parser);
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expr = program?.statements[0] as ast.ExpressionStatement;
-        expect(expr.expression instanceof ast.IfExpression).toBe(true);
-        const ifexpr = expr.expression as ast.IfExpression;
-        testInfixExpression(ifexpr.condition as ast.Expression, 'x' , '<', 'y');
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expr.expression instanceof Ast.IfExpression).toBe(true);
+        const ifexpr = expr.expression as Ast.IfExpression;
+        testInfixExpression(ifexpr.condition as Ast.Expression, 'x' , '<', 'y');
         expect(ifexpr.consequence).not.toBe(undefined);
         expect(ifexpr.consequence?.statements.length).toBe(1);
-        expect(ifexpr.consequence?.statements[0] instanceof ast.ExpressionStatement);
-        const consequence = ifexpr.consequence?.statements[0] as ast.ExpressionStatement;
-        testIdentifier(consequence.expression as ast.Expression, 'x');
+        expect(ifexpr.consequence?.statements[0] instanceof Ast.ExpressionStatement);
+        const consequence = ifexpr.consequence?.statements[0] as Ast.ExpressionStatement;
+        testIdentifier(consequence.expression as Ast.Expression, 'x');
         expect(ifexpr.alternative).not.toBe(undefined);
         expect(ifexpr.alternative?.statements.length).toBe(1);
-        expect(ifexpr.alternative?.statements[0] instanceof ast.ExpressionStatement);
-        const alternative = ifexpr.alternative?.statements[0] as ast.ExpressionStatement;
-        testIdentifier(alternative.expression as ast.Expression, 'y');
+        expect(ifexpr.alternative?.statements[0] instanceof Ast.ExpressionStatement);
+        const alternative = ifexpr.alternative?.statements[0] as Ast.ExpressionStatement;
+        testIdentifier(alternative.expression as Ast.Expression, 'y');
     })
 
     it('handles function literals', () => {
@@ -390,20 +390,20 @@ return 993322;
         const program = parser.ParseProgram();
         checkParserErrors(parser);
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expr = program?.statements[0] as ast.ExpressionStatement;
-        expect(expr.expression instanceof ast.FunctionLiteral).toBe(true);
-        const func = expr.expression as ast.FunctionLiteral;
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expr.expression instanceof Ast.FunctionLiteral).toBe(true);
+        const func = expr.expression as Ast.FunctionLiteral;
         expect(func.parameters?.length).toBe(2);
 
-        testLiteralExpression(func.parameters?.[0] as ast.Expression, 'x');
-        testLiteralExpression(func.parameters?.[1] as ast.Expression, 'y');
+        testLiteralExpression(func.parameters?.[0] as Ast.Expression, 'x');
+        testLiteralExpression(func.parameters?.[1] as Ast.Expression, 'y');
 
         expect(func.body?.statements.length).toBe(1);
-        expect(func.body?.statements[0] instanceof ast.ExpressionStatement);
-        const bodyStatement = func.body?.statements[0] as ast.ExpressionStatement;
+        expect(func.body?.statements[0] instanceof Ast.ExpressionStatement);
+        const bodyStatement = func.body?.statements[0] as Ast.ExpressionStatement;
 
-        testInfixExpression(bodyStatement.expression as ast.Expression, 'x', '+', 'y');
+        testInfixExpression(bodyStatement.expression as Ast.Expression, 'x', '+', 'y');
     })
 
     test('function literal with name', () => {
@@ -414,13 +414,13 @@ return 993322;
         checkParserErrors(parser);
         expect(program?.statements.length).toBe(1);
         
-        expect(program?.statements[0] instanceof ast.LetStatement).toBe(true);
+        expect(program?.statements[0] instanceof Ast.LetStatement).toBe(true);
 
-        const statement = program?.statements[0] as ast.LetStatement;
+        const statement = program?.statements[0] as Ast.LetStatement;
         const func = statement.value;
-        expect(func instanceof ast.FunctionLiteral).toBeTruthy();
+        expect(func instanceof Ast.FunctionLiteral).toBeTruthy();
 
-        expect((func as ast.FunctionLiteral).name).toEqual('myfunction');
+        expect((func as Ast.FunctionLiteral).name).toEqual('myfunction');
     })
 
     it('handles function parameters correctly', () => {
@@ -435,12 +435,12 @@ return 993322;
             const parser = new Parser(lexer);
             const program = parser.ParseProgram();
 
-            const statement = program?.statements[0] as ast.ExpressionStatement;
-            const func = statement.expression as ast.FunctionLiteral;
+            const statement = program?.statements[0] as Ast.ExpressionStatement;
+            const func = statement.expression as Ast.FunctionLiteral;
             expect(func.parameters?.length).toEqual(expected.length);
 
             expected.forEach((val, index) => {
-                testLiteralExpression(func.parameters?.[index] as ast.Expression, val);
+                testLiteralExpression(func.parameters?.[index] as Ast.Expression, val);
             })
         })
     })
@@ -452,18 +452,18 @@ return 993322;
         const program = parser.ParseProgram();
         checkParserErrors(parser);
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expr = program?.statements[0] as ast.ExpressionStatement;
-        expect(expr.expression instanceof ast.CallExpression).toBe(true);
-        const call = expr.expression as ast.CallExpression;
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expr.expression instanceof Ast.CallExpression).toBe(true);
+        const call = expr.expression as Ast.CallExpression;
 
-        testIdentifier(call.func as ast.Expression, 'add');
+        testIdentifier(call.func as Ast.Expression, 'add');
 
         expect(call.functionArguments.length).toBe(3);
 
-        testLiteralExpression(call.functionArguments[0] as ast.Expression, 1);
-        testInfixExpression(call.functionArguments[1] as ast.Expression, 2, "*", 3);
-        testInfixExpression(call.functionArguments[2] as ast.Expression, 4, "+", 5);
+        testLiteralExpression(call.functionArguments[0] as Ast.Expression, 1);
+        testInfixExpression(call.functionArguments[1] as Ast.Expression, 2, "*", 3);
+        testInfixExpression(call.functionArguments[2] as Ast.Expression, 4, "+", 5);
     })
 
     it('parses let statements', () => {
@@ -480,10 +480,10 @@ return 993322;
             checkParserErrors(parser);
 
             expect(program?.statements.length).toBe(1);
-            expect(program?.statements[0] instanceof ast.LetStatement).toBe(true);
-            const statement = program?.statements[0] as ast.LetStatement;
+            expect(program?.statements[0] instanceof Ast.LetStatement).toBe(true);
+            const statement = program?.statements[0] as Ast.LetStatement;
             testLetStatement(statement, identifier);
-            testLiteralExpression(statement.value as ast.Expression, expected);
+            testLiteralExpression(statement.value as Ast.Expression, expected);
         })
     })
 
@@ -495,10 +495,10 @@ return 993322;
         checkParserErrors(parser);
 
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expr = program?.statements[0] as ast.ExpressionStatement;
-        expect(expr.expression instanceof ast.StringLiteral).toBe(true);
-        const stringlit = expr.expression as ast.StringLiteral;
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expr.expression instanceof Ast.StringLiteral).toBe(true);
+        const stringlit = expr.expression as Ast.StringLiteral;
         expect(stringlit.value).toEqual('hello world');
     })
 
@@ -511,15 +511,15 @@ return 993322;
         checkParserErrors(parser);
 
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expr = program?.statements[0] as ast.ExpressionStatement;
-        expect(expr.expression instanceof ast.ArrayLiteral).toBe(true);
-        const arraylit = expr.expression as ast.ArrayLiteral;
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expr.expression instanceof Ast.ArrayLiteral).toBe(true);
+        const arraylit = expr.expression as Ast.ArrayLiteral;
         expect(arraylit.elements.length).toBe(3);
 
-        testIntegerLiteral(arraylit.elements[0] as ast.Expression, 1);
-        testInfixExpression(arraylit.elements[1] as ast.Expression, 2, '*', 2);
-        testInfixExpression(arraylit.elements[2] as ast.Expression, 3, '+', 3);
+        testIntegerLiteral(arraylit.elements[0] as Ast.Expression, 1);
+        testInfixExpression(arraylit.elements[1] as Ast.Expression, 2, '*', 2);
+        testInfixExpression(arraylit.elements[2] as Ast.Expression, 3, '+', 3);
     })
 
     it('parses index expressions', () => {
@@ -530,13 +530,13 @@ return 993322;
         checkParserErrors(parser);
 
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expr = program?.statements[0] as ast.ExpressionStatement;
-        expect(expr.expression instanceof ast.IndexExpression).toBe(true);
-        const indexExpr = expr.expression as ast.IndexExpression;
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expr.expression instanceof Ast.IndexExpression).toBe(true);
+        const indexExpr = expr.expression as Ast.IndexExpression;
 
         testIdentifier(indexExpr.left, 'myArray');
-        testInfixExpression(indexExpr.index as ast.Expression, 1, '+', 1);
+        testInfixExpression(indexExpr.index as Ast.Expression, 1, '+', 1);
     })
 
     it('parses hash literals string keys', () => {
@@ -547,10 +547,10 @@ return 993322;
         checkParserErrors(parser);
 
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expr = program?.statements[0] as ast.ExpressionStatement;
-        expect(expr.expression instanceof ast.HashLiteral).toBe(true);
-        const hash = expr.expression as ast.HashLiteral;
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expr.expression instanceof Ast.HashLiteral).toBe(true);
+        const hash = expr.expression as Ast.HashLiteral;
 
         const expected: Record<string, number> = {
             "one": 1,
@@ -559,7 +559,7 @@ return 993322;
         }
 
         for(let [key, value] of hash.pairs) {
-            expect(key instanceof ast.StringLiteral).toBe(true);
+            expect(key instanceof Ast.StringLiteral).toBe(true);
             testIntegerLiteral(value, expected[key.string()]);
         }
     })
@@ -572,10 +572,10 @@ return 993322;
         checkParserErrors(parser);
 
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expr = program?.statements[0] as ast.ExpressionStatement;
-        expect(expr.expression instanceof ast.HashLiteral).toBe(true);
-        const hash = expr.expression as ast.HashLiteral;
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expr.expression instanceof Ast.HashLiteral).toBe(true);
+        const hash = expr.expression as Ast.HashLiteral;
         expect(hash.pairs.size).toBe(0);
     })
 
@@ -587,19 +587,19 @@ return 993322;
         checkParserErrors(parser);
 
         expect(program?.statements.length).toBe(1);
-        expect(program?.statements[0] instanceof ast.ExpressionStatement).toBe(true);
-        const expr = program?.statements[0] as ast.ExpressionStatement;
-        expect(expr.expression instanceof ast.HashLiteral).toBe(true);
-        const hash = expr.expression as ast.HashLiteral;
+        expect(program?.statements[0] instanceof Ast.ExpressionStatement).toBe(true);
+        const expr = program?.statements[0] as Ast.ExpressionStatement;
+        expect(expr.expression instanceof Ast.HashLiteral).toBe(true);
+        const hash = expr.expression as Ast.HashLiteral;
 
         const expected: Record<string, any> = {
-            "one": (e: ast.Expression) => testInfixExpression(e, 0, "+", 1),
-            "two": (e: ast.Expression) => testInfixExpression(e, 10, "-", 8),
-            "three": (e: ast.Expression) => testInfixExpression(e, 15, "/", 5),
+            "one": (e: Ast.Expression) => testInfixExpression(e, 0, "+", 1),
+            "two": (e: Ast.Expression) => testInfixExpression(e, 10, "-", 8),
+            "three": (e: Ast.Expression) => testInfixExpression(e, 15, "/", 5),
         }
 
         for(let [key, value] of hash.pairs) {
-            expect(key instanceof ast.StringLiteral).toBe(true);
+            expect(key instanceof Ast.StringLiteral).toBe(true);
             expected[key.string()](value);
         }
     })
