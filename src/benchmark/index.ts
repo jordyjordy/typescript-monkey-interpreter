@@ -40,3 +40,16 @@ const result = Eval(program!, env);
 console.timeEnd('eval');
 
 console.log(result);
+
+const fibonacci = (x: number): number => {
+    if(x === 0) {
+        return 0;
+    } else if(x === 1) {
+        return 1;
+    }
+    return fibonacci(x - 1) + fibonacci(x - 2);
+}
+
+console.time('native');
+console.log(fibonacci(35));
+console.timeEnd('native');
