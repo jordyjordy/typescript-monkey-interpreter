@@ -133,6 +133,9 @@ export class Parser {
 
         statement.value = this.parseExpression(LOWEST);
 
+        if(statement.value instanceof Ast.FunctionLiteral) {
+            statement.value.name = statement.name.value;
+        }
         if(this.peekTokenIs(token.SEMICOLON)) {
             this.nextToken();
         }

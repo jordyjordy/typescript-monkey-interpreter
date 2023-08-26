@@ -64,7 +64,6 @@ function runVmTests(tests: vmTestCase[]) {
         const compiler = new Compiler();
         const error = compiler.compile(program!);
         expect(error).toBeUndefined();
-
         const vm = new Vm(compiler.byteCode());
 
         const vmError = vm.run();
@@ -98,7 +97,7 @@ function testExpectedObject(expected: any, actual?: Obj.Obj) {
             if (expected instanceof Map) {
                 testHashObject(expected, actual);
             }
-            if(expected instanceof Obj.InterpretError) {
+            if (expected instanceof Obj.InterpretError) {
                 expect(expected.message).toEqual((actual as Obj.InterpretError).message);
             }
             break;
@@ -503,7 +502,8 @@ describe('vm tests', () => {
             },
             { input: `len([1, 2, 3])`, expected: 3 },
             { input: `len([])`, expected: 0 },
-            { input: `puts("hello", "world!")`, expected: NULL },
+            // disabled to remove console.logs from test result
+            // { input: `puts("hello", "world!")`, expected: NULL },
             { input: `first([1, 2, 3])`, expected: 1 },
             { input: `first([])`, expected: NULL },
             {
@@ -523,6 +523,159 @@ describe('vm tests', () => {
                 input: `push(1, 1)`,
                 expected: new Obj.InterpretError("argument to `push` must be ARRAY, got INTEGER"),
             }
+        ];
+        runVmTests(tests);
+    })
+
+    test('closures', () => {
+        const tests = [
+            {
+                input: `
+                let newClosure = fn(a) {
+                fn() { a; };
+                };
+                let closure = newClosure(99);
+                closure();
+                `,
+                expected: 99,
+            },
+            {
+                input: `
+                let newAdder = fn(a, b) {
+                fn(c) { a + b + c };
+                };
+                let adder = newAdder(1, 2);
+                adder(8);
+                `,
+                expected: 11,
+            },
+            {
+                input: `
+                let newAdder = fn(a, b) {
+                let c = a + b;
+                fn(d) { c + d };
+                };
+                let adder = newAdder(1, 2);
+                adder(8);
+                `,
+                expected: 11,
+            },
+            {
+                input: `
+                let newAdderOuter = fn(a, b) {
+                let c = a + b;
+                fn(d) {
+                let e = d + c;
+                fn(f) { e + f; };
+                };
+                };
+                let newAdderInner = newAdderOuter(1, 2)
+                let adder = newAdderInner(3);
+                adder(8);
+                `,
+                expected: 14,
+            },
+            {
+                input: `
+                let a = 1;
+                let newAdderOuter = fn(b) {
+                fn(c) {
+                fn(d) { a + b + c + d };
+                };
+                };
+                let newAdderInner = newAdderOuter(2)
+                let adder = newAdderInner(3);
+                adder(8);
+                `,
+                expected: 14,
+            },
+            {
+                input: `
+                let newClosure = fn(a, b) {
+                let one = fn() { a; };
+                let two = fn() { b; };
+                fn() { one() + two(); };
+                };
+                let closure = newClosure(9, 90);
+                closure();
+                `,
+                expected: 99,
+            },
+        ];
+
+        runVmTests(tests);
+    })
+
+    test('recursive functions', () => {
+        const tests = [
+            {
+                input: `
+                let countDown = fn(x) {
+                if (x == 0) {
+                return 0;
+                } else {
+                countDown(x - 1);
+                }
+                };
+                countDown(1);
+                `,
+                expected: 0,
+            },
+            {
+                input: `
+                let countDown = fn(x) {
+                if (x == 0) {
+                return 0;
+                } else {
+                countDown(x - 1);
+                }
+                };
+                let wrapper = fn() {
+                countDown(1);
+                };
+                wrapper();
+                `,
+                expected: 0,
+            },
+            {
+                input: `
+                    let wrapper = fn() {
+                    let countDown = fn(x) {
+                    if (x == 0) {
+                    return 0;
+                    } else {
+                    countDown(x - 1);
+                    }
+                    };
+                    countDown(1);
+                    };
+                    wrapper();
+                    `,
+                expected: 0,
+            }
+        ];
+        runVmTests(tests);
+    })
+
+    test('recursive fibonacii', () => {
+        const tests: vmTestCase[] = [
+            {
+                input: `
+                let fibonacci = fn(x) {
+                if (x == 0) {
+                return 0;
+                } else {
+                if (x == 1) {
+                return 1;
+                } else {
+                fibonacci(x - 1) + fibonacci(x - 2);
+                }
+                }
+                };
+                fibonacci(15);
+                `,
+                expected: 610,
+                }
         ];
         runVmTests(tests);
     })

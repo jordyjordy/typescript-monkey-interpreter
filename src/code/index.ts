@@ -75,7 +75,8 @@ export const OpGetLocal: Opcode = 24;
 export const OpSetLocal: Opcode = 25;
 export const OpGetBuiltin: Opcode = 26;
 export const OpClosure: Opcode = 27;
-export const OpGetFree: OpCode = 28;
+export const OpGetFree: Opcode = 28;
+export const OpCurrentClosure: Opcode = 29;
 
 export class Definition {
     name: string;
@@ -119,6 +120,7 @@ const definitions = {
     [OpGetBuiltin]: new Definition('OpGetBuiltin', [1]),
     [OpClosure]: new Definition('OpClosure', [2, 1]),
     [OpGetFree]: new Definition('OpGetFree', [1]),
+    [OpCurrentClosure]: new Definition('OpCurrentClosure', []),
 }
 
 export function Lookup(op: number) {

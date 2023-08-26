@@ -42,7 +42,7 @@ export class Vm {
     constructor(bytecode: Bytecode) {
         this.frames = new Array<Frame>(maxFrames)
 
-        this.frames[0] = new Frame(new Obj.Closure(new Obj.CompiledFunction(bytecode.instructions, 0, 0)), 0);
+        this.frames[0] = new Frame(new Obj.Closure(new Obj.CompiledFunction(bytecode.instructions, 0, 0), []), 0);
         this.framesIndex = 1;
         this.constants = bytecode.constants;
 
@@ -279,12 +279,17 @@ export class Vm {
         this.sp = frame.basePointer + fn.numLocals;
     }
 
-    pushClosure(constIndex: number) {
+    pushClosure(constIndex: number, numFree: number) {
         const constant = this.constants[constIndex];
         if(!(constant instanceof Obj.CompiledFunction)) {
             return new Error(`Not a function: ${constant}`);
         }
-        this.push(new Obj.Closure(constant));
+        const free = new Array<Obj.Obj>(numFree);
+        for(let i = 0; i < numFree; i++) {
+            free[i] = this.stack[this.sp - numFree + i];
+        }
+
+        return this.push(new Obj.Closure(constant, free));
     }
 
     run(): Error | void {
@@ -303,9 +308,9 @@ export class Vm {
                     break;
                 case Code.OpClosure: {
                     const constIndex = Code.ReadUint16(instructions.slice(ip + 1));
-                    const otherThings = Code.ReadUint16(instructions.slice(ip + 3));
+                    const numFree = Code.ReadUint8(instructions.slice(ip + 3));
                     ip += 3;
-                    const err = this.pushClosure(constIndex);
+                    const err = this.pushClosure(constIndex, numFree);
                     if(err) {
                         return err;
                     }
@@ -492,6 +497,24 @@ export class Vm {
 
                     if(err) {
                         return err
+                    }
+                    break;
+                }
+                case Code.OpGetFree: {
+                    const freeIndex = Code.ReadUint8(instructions.slice(ip + 1));
+                    ip++;
+                    const currentClosure = this.currentFrame().cl;
+                    const err = this.push(currentClosure.free[freeIndex])
+                    if(err) {
+                        return err;
+                    }
+                    break;
+                }
+                case Code.OpCurrentClosure: {
+                    const currentClosure = this.currentFrame().cl;
+                    const err = this.push(currentClosure);
+                    if(err) {
+                        return err;
                     }
                     break;
                 }

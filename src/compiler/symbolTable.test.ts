@@ -1,4 +1,4 @@
-import { GlobalScope, SSymbol, SymbolTable, LocalScope, EnclosedSymbolTable, BuiltinScope, FreeScope } from './symbolTable';
+import { GlobalScope, SSymbol, SymbolTable, LocalScope, EnclosedSymbolTable, BuiltinScope, FreeScope, FunctionScope } from './symbolTable';
 
 describe("symbol table tests", () => {
     test('define', () => {
@@ -229,5 +229,30 @@ describe("symbol table tests", () => {
             const res = secondLocal.resolve(name);
             expect(res).toBeUndefined();
         })
+    })
+
+    test('define and resolve function name', () => {
+        const global = new SymbolTable();
+        global.defineFunctionName("a");
+        
+        const expected = new SSymbol('a', FunctionScope, 0);
+
+        const res = global.resolve(expected.name);
+        expect(res).toBeDefined();
+
+        expect(res).toEqual(expected);
+    })
+
+    test('shadowing function name', () => {
+        const global = new SymbolTable();
+        global.defineFunctionName("a");
+        global.define('a');
+
+        const expected = new SSymbol('a', GlobalScope, 0);
+
+        const res = global.resolve(expected.name);
+        expect(res).toBeDefined();
+
+        expect(res).toEqual(expected);
     })
 })

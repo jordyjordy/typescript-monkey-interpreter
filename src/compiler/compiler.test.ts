@@ -994,6 +994,74 @@ describe('compiler tests', () => {
 
         runCompilerTests(tests);
     })
+
+    test('recursive functions', () => {
+        const tests = [
+            {
+                input: `
+                let countDown = fn(x) { countDown(x - 1); };
+                countDown(1);
+                `,
+                expectedConstants: [
+                    1,
+                    [
+                        code.Make(code.OpCurrentClosure),
+                        code.Make(code.OpGetLocal, 0),
+                        code.Make(code.OpConstant, 0),
+                        code.Make(code.OpSub),
+                        code.Make(code.OpCall, 1),
+                        code.Make(code.OpReturnValue),
+                    ],
+                    1,
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpClosure, 1, 0),
+                    code.Make(code.OpSetGlobal, 0),
+                    code.Make(code.OpGetGlobal, 0),
+                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpCall, 1),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: `
+                let wrapper = fn() {
+                let countDown = fn(x) { countDown(x - 1); };
+                countDown(1);
+                };
+                wrapper();
+                `,
+                expectedConstants: [
+                    1,
+                    [
+                        code.Make(code.OpCurrentClosure),
+                        code.Make(code.OpGetLocal, 0),
+                        code.Make(code.OpConstant, 0),
+                        code.Make(code.OpSub),
+                        code.Make(code.OpCall, 1),
+                        code.Make(code.OpReturnValue),
+                    ],
+                    1,
+                    [
+                        code.Make(code.OpClosure, 1, 0),
+                        code.Make(code.OpSetLocal, 0),
+                        code.Make(code.OpGetLocal, 0),
+                        code.Make(code.OpConstant, 2),
+                        code.Make(code.OpCall, 1),
+                        code.Make(code.OpReturnValue),
+                    ],
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpClosure, 3, 0),
+                    code.Make(code.OpSetGlobal, 0),
+                    code.Make(code.OpGetGlobal, 0),
+                    code.Make(code.OpCall, 0),
+                    code.Make(code.OpPop),
+                ],
+            }
+        ];
+        runCompilerTests(tests);
+    })
 })
 
 
@@ -1019,8 +1087,8 @@ const runCompilerTests = (tests: { input: string, expectedConstants: any[], expe
 
 const testInstructions = (expectedInstructions: code.Instructions[], instructions: code.Instructions) => {
     const concatted = concatInstructions(expectedInstructions);
-    console.log(instructions.toString());
-    console.log(new code.Instructions(...concatted).toString())
+    // console.log(instructions.toString());
+    // console.log(new code.Instructions(...concatted).toString())
     expect(instructions.length).toEqual(concatted.length);
     for (let i = 0; i < concatted.length; i++) {
         expect(concatted[i]).toEqual(instructions[i]);

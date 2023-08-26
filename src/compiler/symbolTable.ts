@@ -4,6 +4,7 @@ export const GlobalScope: SymbolScope = "GLOBAL";
 export const LocalScope: SymbolScope = "LOCAL";
 export const BuiltinScope: SymbolScope = "BUILTIN";
 export const FreeScope: SymbolScope = "FREE";
+export const FunctionScope: SymbolScope = "FUNCTION";
 export class SSymbol {
     name: string;
     scope: SymbolScope;
@@ -43,6 +44,12 @@ export class SymbolTable {
     
     defineBuiltIn(index: number, name: string) {
         const symbol = new SSymbol(name, BuiltinScope, index);
+        this.store[name] = symbol;
+        return symbol;
+    }
+
+    defineFunctionName(name: string) {
+        const symbol = new SSymbol(name, FunctionScope, 0);
         this.store[name] = symbol;
         return symbol;
     }

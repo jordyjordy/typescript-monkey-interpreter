@@ -33,10 +33,10 @@ export class Closure extends Object {
     fn: CompiledFunction;
     free: Obj[];
 
-    constructor(fn: CompiledFunction) {
+    constructor(fn: CompiledFunction, free: Obj[]) {
         super();
         this.fn = fn;
-        this.free = []
+        this.free = free;
     }
     
     type() {

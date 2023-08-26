@@ -4,7 +4,7 @@ import Lexer from "../lexer";
 import * as Obj from "../object";
 import Builtins from "../object/builtins";
 import { Parser } from "../parser";
-import { BuiltinScope, EnclosedSymbolTable, FreeScope, GlobalScope, LocalScope, SSymbol, SymbolTable } from "./symbolTable";
+import { BuiltinScope, EnclosedSymbolTable, FreeScope, FunctionScope, GlobalScope, LocalScope, SSymbol, SymbolTable } from "./symbolTable";
 
 export class Bytecode {
     instructions: Code.Instructions;
@@ -80,6 +80,9 @@ export class Compiler {
             case FreeScope:
                 this.emit(Code.OpGetFree, symbol.index);
                 break
+            case FunctionScope:
+                this.emit(Code.OpCurrentClosure);
+                break;
         }
     }
 
@@ -243,15 +246,16 @@ export class Compiler {
                 if(!letNode.value) {
                     return new Error('let statement is missing value');
                 }
+                const symbol = this.symbolTable.define(letNode.name?.value!);
                 const err = this.compile(letNode.value);
                 if(err) {
                     return err;
                 }
-                const symbol = this.symbolTable.define(letNode.name?.value!);
+                
                 const opCode = symbol.scope === GlobalScope
-                    ? Code.OpSetGlobal
-                    : Code.OpSetLocal
-
+                ? Code.OpSetGlobal
+                : Code.OpSetLocal
+                
                 this.emit(opCode, symbol.index);
                 break;
             }
@@ -310,7 +314,9 @@ export class Compiler {
             case Ast.FunctionLiteral: {
                 this.enterScope();
                 const funcLit = node as Ast.FunctionLiteral;
-                
+                if(funcLit.name !== '') {
+                    this.symbolTable.defineFunctionName(funcLit.name)
+                }
                 funcLit.parameters?.forEach(param => {
                     this.symbolTable.define(param.value);
                 })

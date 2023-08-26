@@ -244,9 +244,11 @@ export class FunctionLiteral implements Expression {
     token: Token;
     parameters: Identifier[];
     body?: BlockStatement;
+    name: string;
 
     constructor(token: Token) {
         this.token = token;
+        this.name = '';
         this.parameters = [];
     }
 
@@ -256,7 +258,7 @@ export class FunctionLiteral implements Expression {
 
     string() {
         const params = this.parameters?.map((param) => param.string()).join(', ');
-        return `${this.TokenLiteral()}(${params})${this.body?.string() ?? ''}`;
+        return `${this.TokenLiteral()}${this.name}(${params})${this.body?.string() ?? ''}`;
     }
 }
 

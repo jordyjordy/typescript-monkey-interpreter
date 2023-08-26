@@ -406,6 +406,23 @@ return 993322;
         testInfixExpression(bodyStatement.expression as ast.Expression, 'x', '+', 'y');
     })
 
+    test('function literal with name', () => {
+        const input =  `let myfunction = fn() { };`;
+        const lexer = new Lexer(input);
+        const parser = new Parser(lexer);
+        const program = parser.ParseProgram();
+        checkParserErrors(parser);
+        expect(program?.statements.length).toBe(1);
+        
+        expect(program?.statements[0] instanceof ast.LetStatement).toBe(true);
+
+        const statement = program?.statements[0] as ast.LetStatement;
+        const func = statement.value;
+        expect(func instanceof ast.FunctionLiteral).toBeTruthy();
+
+        expect((func as ast.FunctionLiteral).name).toEqual('myfunction');
+    })
+
     it('handles function parameters correctly', () => {
         const tests: [string, string[]][] = [
             ['fn() {};', []],
