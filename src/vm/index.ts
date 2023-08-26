@@ -245,6 +245,21 @@ export class Vm {
         return new Obj.Hash(hashedPairs);
     }
 
+    callFunction(numArgs: number,) {
+        const fn = this.stack[this.sp - 1 - numArgs];
+
+        if(!(fn instanceof Obj.CompiledFunction)) {
+            return new Error('calling non-function');
+        }
+        if(fn.numParameters !== numArgs) {
+            return new Error(`wrong number of arguments: want=${fn.numParameters}, got=${numArgs}`)
+        }
+        const frame = new Frame(fn, this.sp - numArgs)
+        this.pushFrame(frame);
+
+        this.sp = frame.basePointer + fn.numLocals;
+    }
+
     run(): Error | void {
         while(this.currentFrame().ip < this.currentFrame().instructions().length - 1) {
             this.currentFrame().ip++;
@@ -381,15 +396,13 @@ export class Vm {
                     break;
                 }
                 case Code.OpCall: {
+                    const numArgs = Code.ReadUint8(instructions.slice(ip+1));
                     this.currentFrame().ip++;
-                    const fn = this.stack[this.sp - 1];
-                    if(!(fn instanceof Obj.CompiledFunction)) {
-                        return new Error('calling non-function');
-                    }
 
-                    const frame = new Frame(fn, this.sp)
-                    this.pushFrame(frame);
-                    this.sp = frame.basePointer + fn.numLocals;
+                    const err = this.callFunction(numArgs);
+                    if(err) {
+                        return err
+                    }
                     // continue because we do not want to update the current frames ip
                     continue;
                 }

@@ -290,6 +290,10 @@ export class Compiler {
             case Ast.FunctionLiteral: {
                 this.enterScope();
                 const funcLit = node as Ast.FunctionLiteral;
+                
+                funcLit.parameters?.forEach(param => {
+                    this.symbolTable.define(param.value);
+                })
                 const err = this.compile(funcLit.body!);
                 if(err) {
                     return err;
@@ -304,7 +308,7 @@ export class Compiler {
                 const numLocals = this.symbolTable.numDefinitions;
                 const instructions = this.leaveScope();
                 
-                const compiledFunction = new Obj.CompiledFunction(instructions, numLocals);
+                const compiledFunction = new Obj.CompiledFunction(instructions, numLocals, funcLit.parameters.length);
                 this.emit(Code.OpConstant, this.addConstant(compiledFunction));
                 break;
             }
@@ -323,7 +327,15 @@ export class Compiler {
                 if(error) {
                     return error
                 }
-                this.emit(Code.OpCall, 0);
+                for(let i = 0; i < callExpr.functionArguments.length; i++) {
+                    const arg = callExpr.functionArguments[i];
+                    const err = this.compile(arg!);
+                    if(err) {
+                        return err;
+                    }
+                }
+
+                this.emit(Code.OpCall, callExpr.functionArguments.length);
                 break;
             }
             case Ast.BlockStatement: {

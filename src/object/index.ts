@@ -114,9 +114,11 @@ class InterpretError implements Obj {
 class CompiledFunction implements Obj {
     instructions: Code.Instructions;
     numLocals: number;
-    constructor(instructions: Code.Instructions, numLocals: number) {
+    numParameters: number
+    constructor(instructions: Code.Instructions, numLocals: number, numParameters: number) {
         this.instructions = instructions;
         this.numLocals = numLocals;
+        this.numParameters = numParameters;
     }
 
     type() {

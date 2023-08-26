@@ -242,11 +242,12 @@ export class BlockStatement implements Statement {
 
 export class FunctionLiteral implements Expression {
     token: Token;
-    parameters?: Identifier[];
+    parameters: Identifier[];
     body?: BlockStatement;
 
     constructor(token: Token) {
         this.token = token;
+        this.parameters = [];
     }
 
     expressionNode() {}
