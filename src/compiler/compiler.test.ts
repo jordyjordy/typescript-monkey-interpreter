@@ -582,7 +582,7 @@ describe('compiler tests', () => {
                 ],
                 expectedInstructions: [
                     code.Make(code.OpConstant, 1), // The compiled function
-                    code.Make(code.OpCall),
+                    code.Make(code.OpCall, 0),
                     code.Make(code.OpPop),
                 ],
             },
@@ -605,7 +605,7 @@ describe('compiler tests', () => {
                     code.Make(code.OpConstant, 2),
                     code.Make(code.OpSetGlobal, 0),
                     code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpCall),
+                    code.Make(code.OpCall, 0),
                     code.Make(code.OpPop),
                 ]
             },
@@ -625,7 +625,7 @@ describe('compiler tests', () => {
                     code.Make(code.OpConstant, 1), // The compiled function
                     code.Make(code.OpSetGlobal, 0),
                     code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpCall),
+                    code.Make(code.OpCall, 0),
                     code.Make(code.OpPop),
                 ],
             }
@@ -730,7 +730,7 @@ describe('compiler tests', () => {
                     code.Make(code.OpConstant, 1),
                     code.Make(code.OpSetGlobal, 0),
                     code.Make(code.OpGetGlobal, 0),
-                    code.Make(code.OpCall),
+                    code.Make(code.OpCall, 0),
                     code.Make(code.OpPop),
                 ],
                 

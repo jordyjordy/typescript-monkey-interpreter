@@ -323,7 +323,7 @@ export class Compiler {
                 if(error) {
                     return error
                 }
-                this.emit(Code.OpCall);
+                this.emit(Code.OpCall, 0);
                 break;
             }
             case Ast.BlockStatement: {

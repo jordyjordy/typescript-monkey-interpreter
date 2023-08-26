@@ -381,6 +381,7 @@ export class Vm {
                     break;
                 }
                 case Code.OpCall: {
+                    this.currentFrame().ip++;
                     const fn = this.stack[this.sp - 1];
                     if(!(fn instanceof Obj.CompiledFunction)) {
                         return new Error('calling non-function');
