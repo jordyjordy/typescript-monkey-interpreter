@@ -4,7 +4,8 @@ import { Parser } from '../parser';
 import * as Obj from '../object';
 import { Compiler } from "../compiler";
 import { Vm } from './';
-import { NULL } from "../evaluator";
+
+const { NULL } = Obj;
 
 function parse(input: string): Ast.Program | undefined {
     const l = new Lexer(input);

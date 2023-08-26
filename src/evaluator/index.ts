@@ -3,9 +3,7 @@ import builtins from "../object/builtins";
 import Environment, { newEnclosedEnvironment } from "./environment";
 import * as Obj from "../object";
 
-export const TRUE = new Obj.Bool(true);
-export const FALSE = new Obj.Bool(false);
-export const NULL = new Obj.Null();
+const { NULL, FALSE, TRUE } = Obj;
 
 export function Eval(node: Ast.Node, env: Environment): Obj.Obj | undefined {
     switch(node.constructor) {
@@ -104,7 +102,7 @@ export function Eval(node: Ast.Node, env: Environment): Obj.Obj | undefined {
             return evalHashLiteral(node as Ast.HashLiteral, env);
         }
         default:
-            return NULL;
+            return ;
     }
 }
 
@@ -345,7 +343,7 @@ function applyFunction(fn: Obj.Obj, args: Obj.Obj[]) {
             const evaluated = Eval((fn as Obj.Function).body, extendedEnv);
             return unwrapReturnValue(evaluated!);
         case Obj.BuiltIn:
-            return (fn as Obj.BuiltIn).value(...args);
+            return (fn as Obj.BuiltIn)?.value?.(...args) ?? NULL;
     }
     if(!(fn instanceof Obj.Function)) {
         return newError(`not a function: ${fn.type()}`)

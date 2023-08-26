@@ -1,9 +1,8 @@
 import * as Obj from "../object";
 import * as Code from "../code";
 import { Bytecode } from "../compiler";
-import { FALSE, NULL, TRUE } from "../evaluator";
-import { Boolean } from "../ast";
-import { loadOptions } from "@babel/core";
+
+const { NULL, TRUE, FALSE } = Obj;
 
 const stackSize = 2048;
 
@@ -42,7 +41,7 @@ export class Vm {
     constructor(bytecode: Bytecode) {
         this.frames = new Array<Frame>(maxFrames)
 
-        this.frames[0] = new Frame(new Obj.CompiledFunction(bytecode.instructions, 0), 0);
+        this.frames[0] = new Frame(new Obj.CompiledFunction(bytecode.instructions, 0, 0), 0);
         this.framesIndex = 1;
         this.constants = bytecode.constants;
 

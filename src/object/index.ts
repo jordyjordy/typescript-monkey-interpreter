@@ -175,7 +175,7 @@ class String extends Hashable implements IHashable {
 class BuiltIn implements Obj {
     value: (...args: Obj[]) => Obj;
 
-    constructor(value: (...args: Obj[]) => Obj) {
+    constructor(value: (...args: Obj[]) => Obj | undefined) {
         this.value = value;
     }
 
@@ -239,6 +239,11 @@ class Hash implements Obj {
         return `{${pairs.join(', ')}}`;
     }
 }
+
+export const TRUE = new Bool(true);
+export const FALSE = new Bool(false);
+export const NULL = new Null();
+
 
 export {
     Integer,

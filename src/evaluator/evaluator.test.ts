@@ -1,6 +1,6 @@
 import Lexer from '../lexer';
-import { ArrayLiteral, Bool, Function, Hash, Integer, InterpretError, Obj, String } from '../object';
-import { Eval, FALSE, NULL, TRUE } from '.';
+import { ArrayLiteral, Bool, Function, Hash, Integer, InterpretError, Obj, String, FALSE, NULL, TRUE } from '../object';
+import { Eval } from '.';
 import { Parser } from '../parser';
 import { Node } from '../ast';
 import Environment from './environment';
