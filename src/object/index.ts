@@ -11,11 +11,12 @@ const NULL_OBJ = "NULL";
 const RETURN_VALUE_OBJ = "RETURN_VALUE";
 const ERROR_OBJ = 'ERROR';
 const FUNCTION_OBJ = 'FUNCTION';
-const COMPILED_FUNCTION_OBJ = 'COMPILED_FUNCTION_OBJ';
+const COMPILED_FUNCTION_OBJ = 'COMPILED_FUNCTION';
 const STRING_OBJ = 'STRING';
 const BUILTIN_OBJ = 'BUILTIN';
 const ARRAY_OBJ = 'ARRAY';
 const HASH_OBJ = 'HASH';
+const CLOSURE_OBJ = 'CLOSURE';
 
 export interface Obj {
     type: () => ObjectType;
@@ -26,6 +27,25 @@ export class Hashable {}
 
 export interface IHashable extends Obj {
     hashKey: () => HashKey;
+}
+
+export class Closure extends Object {
+    fn: CompiledFunction;
+    free: Obj[];
+
+    constructor(fn: CompiledFunction) {
+        super();
+        this.fn = fn;
+        this.free = []
+    }
+    
+    type() {
+        return CLOSURE_OBJ;
+    }
+
+    inspect() {
+        return `Closure[${this.fn.inspect()}]`;
+    }
 }
 
 class Integer extends Hashable implements IHashable {

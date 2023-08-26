@@ -12,20 +12,20 @@ const maxFrames = 1024;
 export const globalSize = 65536;
 
 export class Frame {
-    fn: Obj.CompiledFunction;
+    cl: Obj.Closure;
 
     ip: number;
 
     basePointer: number;
 
-    constructor(fn: Obj.CompiledFunction, basePointer: number) {
-        this.fn = fn;
+    constructor(cl: Obj.Closure, basePointer: number) {
+        this.cl = cl;
         this.ip = -1;
         this.basePointer = basePointer;
     }
 
     instructions() {
-        return this.fn.instructions;
+        return this.cl.fn.instructions;
     }
 }
 
@@ -42,7 +42,7 @@ export class Vm {
     constructor(bytecode: Bytecode) {
         this.frames = new Array<Frame>(maxFrames)
 
-        this.frames[0] = new Frame(new Obj.CompiledFunction(bytecode.instructions, 0, 0), 0);
+        this.frames[0] = new Frame(new Obj.Closure(new Obj.CompiledFunction(bytecode.instructions, 0, 0)), 0);
         this.framesIndex = 1;
         this.constants = bytecode.constants;
 
@@ -248,8 +248,8 @@ export class Vm {
     executeCall(numArgs: number) {
         const fn = this.stack[this.sp - 1 - numArgs];
         switch(fn.constructor) {
-            case Obj.CompiledFunction:
-                return this.callFunction(fn as Obj.CompiledFunction, numArgs);
+            case Obj.Closure:
+                return this.callClosure(fn as Obj.Closure, numArgs);
             case Obj.BuiltIn:
                 return this.callBuiltin(fn as Obj.BuiltIn, numArgs);
             default:
@@ -268,14 +268,23 @@ export class Vm {
         }
     }
 
-    callFunction(fn: Obj.CompiledFunction, numArgs: number) {
+    callClosure(cl: Obj.Closure, numArgs: number) {
+        const { fn } = cl;
         if(fn.numParameters !== numArgs) {
             return new Error(`wrong number of arguments: want=${fn.numParameters}, got=${numArgs}`)
         }
-        const frame = new Frame(fn, this.sp - numArgs)
+        const frame = new Frame(cl, this.sp - numArgs)
         this.pushFrame(frame);
 
         this.sp = frame.basePointer + fn.numLocals;
+    }
+
+    pushClosure(constIndex: number) {
+        const constant = this.constants[constIndex];
+        if(!(constant instanceof Obj.CompiledFunction)) {
+            return new Error(`Not a function: ${constant}`);
+        }
+        this.push(new Obj.Closure(constant));
     }
 
     run(): Error | void {
@@ -292,6 +301,16 @@ export class Vm {
 
                     this.push(this.constants[constIndex]);
                     break;
+                case Code.OpClosure: {
+                    const constIndex = Code.ReadUint16(instructions.slice(ip + 1));
+                    const otherThings = Code.ReadUint16(instructions.slice(ip + 3));
+                    ip += 3;
+                    const err = this.pushClosure(constIndex);
+                    if(err) {
+                        return err;
+                    }
+                    break;
+                }
                 case Code.OpAdd:
                 case Code.OpSub:
                 case Code.OpMul:

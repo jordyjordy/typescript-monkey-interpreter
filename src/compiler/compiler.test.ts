@@ -478,7 +478,7 @@ describe('compiler tests', () => {
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpClosure, 2, 0),
                     code.Make(code.OpPop),
                 ],
             },
@@ -495,7 +495,7 @@ describe('compiler tests', () => {
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpClosure, 2, 0),
                     code.Make(code.OpPop),
                 ],
             },
@@ -512,7 +512,7 @@ describe('compiler tests', () => {
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpClosure, 2, 0),
                     code.Make(code.OpPop),
                 ],
             },
@@ -560,7 +560,7 @@ describe('compiler tests', () => {
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpClosure, 0, 0),
                     code.Make(code.OpPop),
                 ],
             },
@@ -581,7 +581,7 @@ describe('compiler tests', () => {
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 1), // The compiled function
+                    code.Make(code.OpClosure, 1, 0), // The compiled function
                     code.Make(code.OpCall, 0),
                     code.Make(code.OpPop),
                 ],
@@ -602,7 +602,7 @@ describe('compiler tests', () => {
                     ]
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpClosure, 2, 0),
                     code.Make(code.OpSetGlobal, 0),
                     code.Make(code.OpGetGlobal, 0),
                     code.Make(code.OpCall, 0),
@@ -622,7 +622,7 @@ describe('compiler tests', () => {
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 1), // The compiled function
+                    code.Make(code.OpClosure, 1, 0), // The compiled function
                     code.Make(code.OpSetGlobal, 0),
                     code.Make(code.OpGetGlobal, 0),
                     code.Make(code.OpCall, 0),
@@ -641,7 +641,7 @@ describe('compiler tests', () => {
                     24,
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpClosure, 0, 0),
                     code.Make(code.OpSetGlobal, 0),
                     code.Make(code.OpGetGlobal, 0),
                     code.Make(code.OpConstant, 1),
@@ -663,7 +663,7 @@ describe('compiler tests', () => {
                     26,
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpClosure, 0, 0),
                     code.Make(code.OpSetGlobal, 0),
                     code.Make(code.OpGetGlobal, 0),
                     code.Make(code.OpConstant, 1),
@@ -686,7 +686,7 @@ describe('compiler tests', () => {
                     24,
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpClosure, 0, 0),
                     code.Make(code.OpSetGlobal, 0),
                     code.Make(code.OpGetGlobal, 0),
                     code.Make(code.OpConstant, 1),
@@ -713,7 +713,7 @@ describe('compiler tests', () => {
                     26,
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpClosure, 0, 0),
                     code.Make(code.OpSetGlobal, 0),
                     code.Make(code.OpGetGlobal, 0),
                     code.Make(code.OpConstant, 1),
@@ -744,7 +744,7 @@ describe('compiler tests', () => {
                 expectedInstructions: [
                     code.Make(code.OpConstant, 0),
                     code.Make(code.OpSetGlobal, 0),
-                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpClosure, 1, 0),
                     code.Make(code.OpPop),
                 ],
             },
@@ -765,7 +765,7 @@ describe('compiler tests', () => {
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpClosure, 1, 0),
                     code.Make(code.OpPop),
                 ],
             },
@@ -792,7 +792,7 @@ describe('compiler tests', () => {
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 2),
+                    code.Make(code.OpClosure, 2, 0),
                     code.Make(code.OpPop),
                 ],
             }
@@ -821,7 +821,7 @@ describe('compiler tests', () => {
                     ]
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpClosure, 1, 0),
                     code.Make(code.OpSetGlobal, 0),
                     code.Make(code.OpGetGlobal, 0),
                     code.Make(code.OpCall, 0),
@@ -864,13 +864,14 @@ describe('compiler tests', () => {
                     ],
                 ],
                 expectedInstructions: [
-                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpClosure, 0, 0),
                     code.Make(code.OpPop),
                 ],
             },
         ];
         runCompilerTests(tests);
     })
+
 })
 
 
@@ -883,8 +884,12 @@ const runCompilerTests = (tests: { input: string, expectedConstants: any[], expe
         // expect(res).not.toBe(null);
 
         const byteCode = compiler.byteCode();
-
-        testInstructions(test.expectedInstructions, byteCode.instructions);
+        try {
+            testInstructions(test.expectedInstructions, byteCode.instructions);
+        } catch (err) {
+            console.log(test.expectedInstructions);
+            throw err;
+        }
 
         testConstants(test.expectedConstants, byteCode.constants);
     })

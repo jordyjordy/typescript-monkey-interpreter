@@ -10,19 +10,23 @@ export class Instructions extends Array<number> {
                 break;
             }
             const [operands, read] = ReadOperands(def, this.slice(offSet + 1) as Instructions);
+
             outputString += `${Instructions.formatOffset(offSet)} ${Instructions.formatInstruction(def, operands)}\n`
             offSet += 1 + read;
         }
-        return outputString.slice(0, -1);
+        return outputString.trimEnd();
     }
 
     public static formatInstruction(def: Definition, operands: number[]): string {
         const operandCount = def.operandWidths.length;
+
         if(operands.length !== operandCount) {
             return `Error: operand length ${operands.length} does not match defined ${operandCount}`;
         }
 
         switch (operandCount) {
+            case 2:
+                return `${def.name} ${operands[0]} ${operands[1]}`
             case 1:
                 return `${def.name} ${operands[0]}`;
             case 0:
@@ -70,6 +74,7 @@ export const OpReturn: Opcode = 23;
 export const OpGetLocal: Opcode = 24;
 export const OpSetLocal: Opcode = 25;
 export const OpGetBuiltin: Opcode = 26;
+export const OpClosure: Opcode = 27;
 
 export class Definition {
     name: string;
@@ -111,6 +116,7 @@ const definitions = {
     [OpGetLocal]: new Definition('OpGetLocal', [1]), 
     [OpSetLocal]: new Definition('OpSetLocal', [1]),
     [OpGetBuiltin]: new Definition('OpGetBuiltin', [1]),
+    [OpClosure]: new Definition('OpClosure', [2, 1]),
 }
 
 export function Lookup(op: number) {
@@ -161,19 +167,17 @@ export function Make(op: Opcode, ...operands: number[]): Instructions {
 export function ReadOperands(def: Definition, instructions: Instructions): [number[], number] {
     const operands = new Array<number>(def.operandWidths.length);
     let offset = 0;
-
     def.operandWidths.forEach((width, index) => {
         switch (width) {
             case 2:
-                operands[index] = ReadUint16(instructions.splice(offset, offset + 2));
+                operands[index] = ReadUint16(instructions.slice(offset, offset + 2));
                 break;
             case 1:
-                operands[index] = ReadUint8(instructions.splice(offset, offset + 1));
+                operands[index] = ReadUint8(instructions.slice(offset, offset + 1));
                 break;
         }
         offset += width;
     })
-
     return [operands, offset];
 }
 

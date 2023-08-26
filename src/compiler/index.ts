@@ -326,7 +326,9 @@ export class Compiler {
                 const instructions = this.leaveScope();
                 
                 const compiledFunction = new Obj.CompiledFunction(instructions, numLocals, funcLit.parameters.length);
-                this.emit(Code.OpConstant, this.addConstant(compiledFunction));
+                const fnIndex =  this.addConstant(compiledFunction)
+
+                this.emit(Code.OpClosure, fnIndex, 0);
                 break;
             }
             case Ast.ReturnStatement: {
