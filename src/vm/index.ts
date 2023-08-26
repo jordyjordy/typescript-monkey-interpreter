@@ -397,6 +397,16 @@ export class Vm {
                     // continue because we do not want to update the current frames ip
                     continue;
                 }
+                case Code.OpReturn: {
+                    this.popFrame();
+                    this.pop();
+                    const err = this.push(NULL);
+                    if(err) {
+                        return err;
+                    }
+                    // continue because we do not want to update the current frames ip
+                    continue;
+                }
                 case Code.OpPop:
                     this.pop();
                     break;

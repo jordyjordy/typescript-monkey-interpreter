@@ -301,6 +301,22 @@ describe('vm tests', () => {
                 `,
                 expected: 99,
             },
+            {
+                input: `
+                let noReturn = fn() { };
+                noReturn();
+                `,
+                expected: NULL,
+            },
+            {
+                input: `
+                let noReturn = fn() { };
+                let noReturnTwo = fn() { noReturn(); };
+                noReturn();
+                noReturnTwo();
+                `,
+                expected: NULL,
+            }
 
         ];
 
