@@ -2,8 +2,9 @@ import * as Ast from "../ast";
 import * as Code from "../code";
 import Lexer from "../lexer";
 import * as Obj from "../object";
+import Builtins from "../object/builtins";
 import { Parser } from "../parser";
-import { EnclosedSymbolTable, GlobalScope, SymbolTable } from "./symbolTable";
+import { BuiltinScope, EnclosedSymbolTable, GlobalScope, LocalScope, SSymbol, SymbolTable } from "./symbolTable";
 
 export class Bytecode {
     instructions: Code.Instructions;
@@ -46,6 +47,10 @@ export class Compiler {
     constructor() {
         this.constants = new Array<Obj.Obj>();
         this.symbolTable = new SymbolTable();
+
+        Object.entries(Builtins).forEach(([name], i) => {
+            this.symbolTable.defineBuiltIn(i, name);
+        })
         this.scopes = new Array<ComplationScope>(new ComplationScope());
         this.scopeIndex = 0;
     }
@@ -59,6 +64,20 @@ export class Compiler {
 
     currentInstructions(): Code.Instructions {
         return this.scopes[this.scopeIndex].instructions;
+    }
+
+    loadSymbol(symbol: SSymbol) {
+        switch(symbol.scope) {
+            case GlobalScope:
+                this.emit(Code.OpGetGlobal, symbol.index);
+                break;
+            case LocalScope:
+                this.emit(Code.OpGetLocal, symbol.index);
+                break;
+            case BuiltinScope:
+                this.emit(Code.OpGetBuiltin, symbol.index);
+                break;
+        }
     }
 
     compile(node: Ast.Node): Error | void {
@@ -239,10 +258,8 @@ export class Compiler {
                 if(!symbol) {
                     return new Error(`undefined variable: ${identifier.value}`);
                 }
-                const opCode = symbol.scope === GlobalScope
-                ? Code.OpGetGlobal
-                : Code.OpGetLocal
-                this.emit(opCode, symbol.index);
+
+                this.loadSymbol(symbol);
                 break;
             }
             case Ast.StringLiteral: {

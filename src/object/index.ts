@@ -173,7 +173,7 @@ class String extends Hashable implements IHashable {
 }
 
 class BuiltIn implements Obj {
-    value: (...args: Obj[]) => Obj;
+    value: (...args: Obj[]) => Obj | undefined;
 
     constructor(value: (...args: Obj[]) => Obj | undefined) {
         this.value = value;

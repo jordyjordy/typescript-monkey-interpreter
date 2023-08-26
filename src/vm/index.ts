@@ -1,6 +1,7 @@
 import * as Obj from "../object";
 import * as Code from "../code";
 import { Bytecode } from "../compiler";
+import Builtins from "../object/builtins";
 
 const { NULL, TRUE, FALSE } = Obj;
 
@@ -244,12 +245,30 @@ export class Vm {
         return new Obj.Hash(hashedPairs);
     }
 
-    callFunction(numArgs: number,) {
+    executeCall(numArgs: number) {
         const fn = this.stack[this.sp - 1 - numArgs];
-
-        if(!(fn instanceof Obj.CompiledFunction)) {
-            return new Error('calling non-function');
+        switch(fn.constructor) {
+            case Obj.CompiledFunction:
+                return this.callFunction(fn as Obj.CompiledFunction, numArgs);
+            case Obj.BuiltIn:
+                return this.callBuiltin(fn as Obj.BuiltIn, numArgs);
+            default:
+                return new Error("calling non-function and non-built-in");
         }
+    }
+
+    callBuiltin(fn: Obj.BuiltIn, numArgs: number) {
+        const args = this.stack.slice(this.sp - numArgs, this.sp);
+        const result = fn.value(...args);
+        this.sp = this.sp - numArgs - 1;
+        if(result) {
+            this.push(result);
+        } else {
+            this.push(NULL);
+        }
+    }
+
+    callFunction(fn: Obj.CompiledFunction, numArgs: number) {
         if(fn.numParameters !== numArgs) {
             return new Error(`wrong number of arguments: want=${fn.numParameters}, got=${numArgs}`)
         }
@@ -398,7 +417,7 @@ export class Vm {
                     const numArgs = Code.ReadUint8(instructions.slice(ip+1));
                     this.currentFrame().ip++;
 
-                    const err = this.callFunction(numArgs);
+                    const err = this.executeCall(numArgs);
                     if(err) {
                         return err
                     }
@@ -441,6 +460,19 @@ export class Vm {
                     const err = this.push(this.stack[frame.basePointer + localindex]);
                     if(err) {
                         return err;
+                    }
+                    break;
+                }
+                case Code.OpGetBuiltin: {
+                    const builtinIndex = Code.ReadUint8(instructions.slice(ip + 1));
+                    ip++;
+
+                    const definition = Object.values(Builtins)[builtinIndex];
+
+                    const err = this.push(definition)
+
+                    if(err) {
+                        return err
                     }
                     break;
                 }

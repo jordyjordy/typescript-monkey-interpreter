@@ -31,7 +31,8 @@ const Builtins = {
             return new Obj.InterpretError(`wrong number of arguments. got=${args.length}, want=1`);
         } 
         if(args[0] instanceof Obj.ArrayLiteral) {
-            return (args[0] as Obj.ArrayLiteral).elements[0];
+            const arrayLit = (args[0] as Obj.ArrayLiteral)
+            return arrayLit.elements[arrayLit.elements.length - 1];
         }
         return new Obj.InterpretError(`argument to \`last\` must be ARRAY, got ${args[0].type()}`)
     }),
@@ -53,7 +54,7 @@ const Builtins = {
         if(args[0] instanceof Obj.ArrayLiteral) {
             return new Obj.ArrayLiteral([...(args[0] as Obj.ArrayLiteral).elements, args[1]]);
         }
-        return new Obj.InterpretError(`argument to \`last\` must be ARRAY, got ${args[0].type()}`)
+        return new Obj.InterpretError(`argument to \`push\` must be ARRAY, got ${args[0].type()}`)
     }),
     puts: new Obj.BuiltIn((...args: Obj.Obj[]) => {
         args.forEach((arg) => console.log(arg.inspect()));

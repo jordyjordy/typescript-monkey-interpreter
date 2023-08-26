@@ -75,6 +75,7 @@ function runVmTests(tests: vmTestCase[]) {
         try {
             testExpectedObject(test.expected, stackElement)
         } catch (err) {
+            console.log(test);
             throw err;
         }
     })
@@ -97,6 +98,9 @@ function testExpectedObject(expected: any, actual?: Obj.Obj) {
             }
             if (expected instanceof Map) {
                 testHashObject(expected, actual);
+            }
+            if(expected instanceof Obj.InterpretError) {
+                expect(expected.message).toEqual((actual as Obj.InterpretError).message);
             }
             break;
         case 'string':
@@ -453,7 +457,7 @@ describe('vm tests', () => {
         runVmTests(tests);
     })
 
-    test('calling fucntions with wrong arguments', () => {
+    test('calling functions with wrong arguments', () => {
         const tests: vmTestCase[] = [
             {
                 input: `fn() { 1; }(1);`,
@@ -482,5 +486,45 @@ describe('vm tests', () => {
             expect((err as Error).message).toEqual(test.expected);
 
         })
+    })
+
+    test('builtIn functions', () => {
+        const tests: vmTestCase[] = [
+            { input: `len("")`, expected: 0 },
+            { input: `len("four")`, expected: 4 },
+            { input: `len("hello world")`, expected: 11 },
+            {
+                input:
+                    `len(1)`,
+                expected: new Obj.InterpretError("argument to `len` not supported, got INTEGER"),
+            },
+            {
+                input: `len("one", "two")`,
+                expected: new Obj.InterpretError("wrong number of arguments. got=2, want=1"),
+            },
+            { input: `len([1, 2, 3])`, expected: 3 },
+            { input: `len([])`, expected: 0 },
+            { input: `puts("hello", "world!")`, expected: NULL },
+            { input: `first([1, 2, 3])`, expected: 1 },
+            { input: `first([])`, expected: NULL },
+            {
+                input: `first(1)`,
+                expected: new Obj.InterpretError("argument to `first` must be ARRAY, got INTEGER"),
+            },
+            { input: `last([1, 2, 3])`, expected: 3 },
+            { input: `last([])`, expected: NULL },
+            {
+                input: `last(1)`,
+                expected: new Obj.InterpretError("argument to `last` must be ARRAY, got INTEGER"),
+            },
+            { input: `rest([1, 2, 3])`, expected: [2, 3] },
+            { input: `rest([])`, expected: NULL },
+            { input: `push([], 1)`, expected: [1] },
+            {
+                input: `push(1, 1)`,
+                expected: new Obj.InterpretError("argument to `push` must be ARRAY, got INTEGER"),
+            }
+        ];
+        runVmTests(tests);
     })
 })

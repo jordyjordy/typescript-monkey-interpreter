@@ -69,6 +69,7 @@ export const OpReturnValue: Opcode = 22;
 export const OpReturn: Opcode = 23;
 export const OpGetLocal: Opcode = 24;
 export const OpSetLocal: Opcode = 25;
+export const OpGetBuiltin: Opcode = 26;
 
 export class Definition {
     name: string;
@@ -109,6 +110,7 @@ const definitions = {
     [OpReturn]: new Definition('OpReturn', []),
     [OpGetLocal]: new Definition('OpGetLocal', [1]), 
     [OpSetLocal]: new Definition('OpSetLocal', [1]),
+    [OpGetBuiltin]: new Definition('OpGetBuiltin', [1]),
 }
 
 export function Lookup(op: number) {

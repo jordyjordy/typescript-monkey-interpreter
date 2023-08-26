@@ -277,7 +277,7 @@ export class Parser {
         if(!this.expectPeek(token.LPAREN)) {
             return undefined;
         }
-        funcLit.parameters = this.parseFunctionParameters();
+        funcLit.parameters = this.parseFunctionParameters()!;
 
         if(!this.expectPeek(token.LBRACE)) {
             return undefined;

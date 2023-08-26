@@ -7,6 +7,7 @@ import { Compiler } from "./compiler";
 import { Vm, globalSize } from "./vm";
 import * as Obj from "./object";
 import { SymbolTable } from "./compiler/symbolTable";
+import Builtins from "./object/builtins";
 
 const prompt =">> ";
 const MONKEY_FACE = `            __,__
@@ -28,6 +29,10 @@ function start() {
     const constants: Obj.Obj[] = [];
     const globals = new Array<Obj.Obj>(globalSize);
     const symbolTable = new SymbolTable();
+
+    Object.entries(Builtins).forEach(([name], i) => {
+        symbolTable.defineBuiltIn(i, name);
+    })
 
     process.stdin.resume();
     process.stdin.setEncoding('utf-8');

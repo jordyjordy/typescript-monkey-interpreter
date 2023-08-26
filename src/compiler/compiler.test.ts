@@ -832,6 +832,45 @@ describe('compiler tests', () => {
         ];
         runCompilerTests(tests);
     })
+
+    test('builtins', () => {
+        const tests = [
+            {
+                input: `
+                len([]);
+                push([], 1);
+                `,
+                expectedConstants: [1],
+                expectedInstructions: [
+                    code.Make(code.OpGetBuiltin, 0),
+                    code.Make(code.OpArray, 0),
+                    code.Make(code.OpCall, 1),
+                    code.Make(code.OpPop),
+                    code.Make(code.OpGetBuiltin, 4),
+                    code.Make(code.OpArray, 0),
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpCall, 2),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: `fn() { len([]) }`,
+                expectedConstants: [
+                    [
+                        code.Make(code.OpGetBuiltin, 0),
+                        code.Make(code.OpArray, 0),
+                        code.Make(code.OpCall, 1),
+                        code.Make(code.OpReturnValue),
+                    ],
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpPop),
+                ],
+            },
+        ];
+        runCompilerTests(tests);
+    })
 })
 
 

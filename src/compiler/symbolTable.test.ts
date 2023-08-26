@@ -1,14 +1,14 @@
-import { GlobalScope, SSymbol, SymbolTable, localScope, EnclosedSymbolTable } from './symbolTable';
+import { GlobalScope, SSymbol, SymbolTable, LocalScope, EnclosedSymbolTable, BuiltinScope } from './symbolTable';
 
 describe("symbol table tests", () => {
     test('define', () => {
         const expected = {
             "a": new SSymbol("a", GlobalScope, 0),
             "b": new SSymbol("b", GlobalScope, 1),
-            "c": new SSymbol("c", localScope, 0),
-            "d": new SSymbol("d", localScope, 1),
-            "e": new SSymbol("e", localScope, 0),
-            "f": new SSymbol("f", localScope, 1),
+            "c": new SSymbol("c", LocalScope, 0),
+            "d": new SSymbol("d", LocalScope, 1),
+            "e": new SSymbol("e", LocalScope, 0),
+            "f": new SSymbol("f", LocalScope, 1),
         };
 
         const global = new SymbolTable();
@@ -60,8 +60,8 @@ describe("symbol table tests", () => {
         const expected = [
             new SSymbol("a", GlobalScope, 0),
             new SSymbol("b", GlobalScope, 1),
-            new SSymbol('c', localScope, 0),
-            new SSymbol('d', localScope, 1),
+            new SSymbol('c', LocalScope, 0),
+            new SSymbol('d', LocalScope, 1),
         ];
 
         expected.forEach((expectedSymbol) => {
@@ -90,8 +90,8 @@ describe("symbol table tests", () => {
                 [
                     new SSymbol("a", GlobalScope, 0),
                     new SSymbol("b", GlobalScope, 1),
-                    new SSymbol('c', localScope, 0),
-                    new SSymbol('d', localScope, 1),
+                    new SSymbol('c', LocalScope, 0),
+                    new SSymbol('d', LocalScope, 1),
                 ],
             ],
             [
@@ -99,8 +99,8 @@ describe("symbol table tests", () => {
                 [
                     new SSymbol("a", GlobalScope, 0),
                     new SSymbol("b", GlobalScope, 1),
-                    new SSymbol('e', localScope, 0),
-                    new SSymbol('f', localScope, 1),
+                    new SSymbol('e', LocalScope, 0),
+                    new SSymbol('f', LocalScope, 1),
                 ]
             ],
                 
@@ -113,5 +113,29 @@ describe("symbol table tests", () => {
                 expect(result).toEqual(expectedSymbol);
             })
         });
+    })
+
+    test('define resolve builtins', () => {
+        const global = new SymbolTable();
+        const firstLocal = new EnclosedSymbolTable(global);
+        const secondLocal = new EnclosedSymbolTable(firstLocal);
+
+        const expected = [
+            new SSymbol("a", BuiltinScope, 0),
+            new SSymbol("b", BuiltinScope, 1),
+            new SSymbol('c', BuiltinScope, 2),
+            new SSymbol('d', BuiltinScope, 3),
+        ]
+
+        expected.forEach((v, i) => {
+            global.defineBuiltIn(i, v.name);
+        });
+    
+        [global, firstLocal, secondLocal].forEach((table) => {
+            expected.forEach(sym => {
+                const res = table.resolve(sym.name);
+                expect(res).toEqual(sym);
+            })
+        })
     })
 })
