@@ -1,6 +1,7 @@
 type SymbolScope = string;
 
 export const GlobalScope: SymbolScope = "GLOBAL";
+export const localScope: SymbolScope = "LOCAL";
 
 export class SSymbol {
     name: string;
@@ -32,5 +33,25 @@ export class SymbolTable {
 
     resolve(name: string): SSymbol {
         return this.store[name];
+    }
+}
+
+export class EnclosedSymbolTable extends SymbolTable {
+    parentTable: SymbolTable;
+
+    constructor(parentTable: SymbolTable) {
+        super();
+        this.parentTable =parentTable;
+    }
+
+    define(name: string): SSymbol {
+        const symbol = new SSymbol(name, localScope, this.numDefinitions);
+        this.store[name] = symbol;
+        this.numDefinitions++;
+        return symbol;
+    }
+
+    resolve(name: string): SSymbol {
+        return this.store[name] ?? this.parentTable.resolve(name);
     }
 }

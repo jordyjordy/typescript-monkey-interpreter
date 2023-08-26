@@ -4,6 +4,7 @@ import * as obj from "../object";
 import Lexer from "../lexer";
 import { Parser } from "../parser";
 import { Compiler } from './';
+import { EnclosedSymbolTable } from "./symbolTable";
 
 describe('compiler tests', () => {
     test('integer arithemetic', () => {
@@ -522,6 +523,8 @@ describe('compiler tests', () => {
     test('compiler scopes', () => {
         const compiler = new Compiler();
         expect(compiler.scopeIndex).toBe(0);
+
+        const globalTable = compiler.symbolTable;
         compiler.emit(code.OpMul);
         compiler.enterScope();
         expect(compiler.scopeIndex).toBe(1);
@@ -530,6 +533,8 @@ describe('compiler tests', () => {
 
         let last = compiler.scopes[compiler.scopeIndex].lastInstruction;
         expect(last?.OpCode).toEqual(code.OpSub);
+
+        expect((compiler.symbolTable as EnclosedSymbolTable).parentTable).toBe(globalTable)
         compiler.leaveScope();
         expect(compiler.scopeIndex).toBe(0);
 
@@ -540,6 +545,8 @@ describe('compiler tests', () => {
         expect(last?.OpCode).toEqual(code.OpAdd);
         const previous = compiler.scopes[compiler.scopeIndex].previousInstruction;
         expect(previous?.OpCode).toEqual(code.OpMul);
+
+        expect(compiler.symbolTable).toBe(globalTable);
 
     })
 
@@ -619,6 +626,79 @@ describe('compiler tests', () => {
                     code.Make(code.OpSetGlobal, 0),
                     code.Make(code.OpGetGlobal, 0),
                     code.Make(code.OpCall),
+                    code.Make(code.OpPop),
+                ],
+            }
+        ];
+        runCompilerTests(tests);
+    })
+
+    test('let statement scopes', () => {
+        const tests = [
+            {
+                input: `
+                let num = 55;
+                fn() { num }
+                `,
+                expectedConstants: [
+                    55,
+                    [
+                        code.Make(code.OpGetGlobal, 0),
+                        code.Make(code.OpReturnValue),
+                    ],
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpSetGlobal, 0),
+                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: `
+                fn() {
+                let num = 55;
+                num
+                }
+                `,
+                expectedConstants: [
+                    55,
+                    [
+                        code.Make(code.OpConstant, 0),
+                        code.Make(code.OpSetLocal, 0),
+                        code.Make(code.OpGetLocal, 0),
+                        code.Make(code.OpReturnValue),
+                    ],
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: `
+                fn() {
+                let a = 55;
+                let b = 77;
+                a + b
+                }
+                `,
+                expectedConstants: [
+                    55,
+                    77,
+                    [
+                        code.Make(code.OpConstant, 0),
+                        code.Make(code.OpSetLocal, 0),
+                        code.Make(code.OpConstant, 1),
+                        code.Make(code.OpSetLocal, 1),
+                        code.Make(code.OpGetLocal, 0),
+                        code.Make(code.OpGetLocal, 1),
+                        code.Make(code.OpAdd),
+                        code.Make(code.OpReturnValue),
+                    ],
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 2),
                     code.Make(code.OpPop),
                 ],
             }

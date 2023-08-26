@@ -67,6 +67,8 @@ export const OpIndex: Opcode = 20;
 export const OpCall: Opcode = 21;
 export const OpReturnValue: Opcode = 22;
 export const OpReturn: Opcode = 23;
+export const OpGetLocal: Opcode = 24;
+export const OpSetLocal: Opcode = 25;
 
 export class Definition {
     name: string;
@@ -105,6 +107,8 @@ const definitions = {
     [OpCall]: new Definition('OpCall', []),
     [OpReturnValue]: new Definition('OpReturnValue', []),
     [OpReturn]: new Definition('OpReturn', []),
+    [OpGetLocal]: new Definition('OpGetLocal', [1]), 
+    [OpSetLocal]: new Definition('OpSetLocal', [1]),
 }
 
 export function Lookup(op: number) {
@@ -142,6 +146,10 @@ export function Make(op: Opcode, ...operands: number[]): Instructions {
         switch(width) {
             case 2:
                 instruction.splice(offSet, 2, ...getBytes(operands[i], 2));
+                break;
+            case 1:
+                instruction.splice(offSet, 1, ...getBytes(operands[i], 1));
+                break;
         }
         offSet += width;
     }
@@ -156,11 +164,22 @@ export function ReadOperands(def: Definition, instructions: Instructions): [numb
         switch (width) {
             case 2:
                 operands[index] = ReadUint16(instructions.splice(offset, offset + 2));
+                break;
+            case 1:
+                operands[index] = ReadUint8(instructions.splice(offset, offset + 1));
+                break;
         }
         offset += width;
     })
 
     return [operands, offset];
+}
+
+export function ReadUint8(instructions: Instructions): number {
+    console.log(instructions);
+    const num =  getNumber(instructions, 1);
+    console.log(num);
+    return num;
 }
 
 export function ReadUint16(instructions: Instructions): number {

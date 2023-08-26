@@ -3,7 +3,7 @@ import * as Code from "../code";
 import Lexer from "../lexer";
 import * as Obj from "../object";
 import { Parser } from "../parser";
-import { SymbolTable } from "./symbolTable";
+import { EnclosedSymbolTable, GlobalScope, SymbolTable } from "./symbolTable";
 
 export class Bytecode {
     instructions: Code.Instructions;
@@ -226,7 +226,11 @@ export class Compiler {
                     return err;
                 }
                 const symbol = this.symbolTable.define(letNode.name?.value!);
-                this.emit(Code.OpSetGlobal, symbol.index);
+                const opCode = symbol.scope === GlobalScope
+                    ? Code.OpSetGlobal
+                    : Code.OpSetLocal
+
+                this.emit(opCode, symbol.index);
                 break;
             }
             case Ast.Identifier: {
@@ -235,8 +239,10 @@ export class Compiler {
                 if(!symbol) {
                     return new Error(`undefined variable: ${identifier.value}`);
                 }
-
-                this.emit(Code.OpGetGlobal, symbol.index);
+                const opCode = symbol.scope === GlobalScope
+                ? Code.OpGetGlobal
+                : Code.OpGetLocal
+                this.emit(opCode, symbol.index);
                 break;
             }
             case Ast.StringLiteral: {
@@ -396,12 +402,14 @@ export class Compiler {
 
     enterScope() {
         const scope = new ComplationScope();
+        this.symbolTable = new EnclosedSymbolTable(this.symbolTable);
         this.scopes.push(scope);
         this.scopeIndex++;
     }
 
     leaveScope() {
         const instructions = this.currentInstructions();
+        this.symbolTable = (this.symbolTable as EnclosedSymbolTable).parentTable;
         this.scopes.pop();
         this.scopeIndex--;
 
