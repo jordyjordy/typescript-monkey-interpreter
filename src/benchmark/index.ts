@@ -26,14 +26,14 @@ const lexer = new Lexer(input);
 const parser = new Parser(lexer);
 const program = parser.ParseProgram();
 
-// const compiler = new Compiler();
-// const err = compiler.compile(program!);
-// const machine = new Vm(compiler.byteCode());
-// console.time('vm');
-// machine.run();
-// console.timeEnd('vm');
+const compiler = new Compiler();
+const err = compiler.compile(program!);
+const machine = new Vm(compiler.byteCode());
+console.time('vm');
+machine.run();
+console.timeEnd('vm');
 
-// console.log(machine.lastPoppedStackElem());
+console.log(machine.lastPoppedStackElem());
 console.time('eval')
 const env = new Environment();
 const result = Eval(program!, env);

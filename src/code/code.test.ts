@@ -3,10 +3,10 @@ import { Instructions, Lookup, Make, OpAdd, OpClosure, OpConstant, OpGetLocal, O
 describe("code tests", () => {
     test('make', () => {
         const tests: [Opcode, number[], number[]][] = [
-            [OpConstant, [65534], [OpConstant, 255, 254]],
+            [OpConstant, [65534], [OpConstant,  65534]],
             [OpAdd, [], [OpAdd]],
             [OpGetLocal, [255], [OpGetLocal, 255]],
-            [OpClosure, [65534, 255], [OpClosure, 255, 254, 255]]
+            [OpClosure, [65534, 255], [OpClosure, 65534, 255]]
         ];
 
         tests.forEach(([op, operand, expected]) => {
@@ -29,8 +29,8 @@ describe("code tests", () => {
         const expected = '0000 OpAdd\n' +
                          '0001 OpGetLocal 1\n' +
                          '0003 OpConstant 2\n' +
-                         '0006 OpConstant 65535\n' +
-                         '0009 OpClosure 65535 255';
+                         '0005 OpConstant 65535\n' +
+                         '0007 OpClosure 65535 255';
         
         const concatted = new Instructions();
         instructions.forEach((instruction) => {
@@ -41,9 +41,9 @@ describe("code tests", () => {
 
     test('read operands', () => {
         const tests: [Opcode, number[], number][] = [
-            [OpConstant, [65535], 2],
+            [OpConstant, [65535], 1],
             [OpGetLocal, [255], 1],
-            [OpClosure, [65535, 255], 3],
+            [OpClosure, [65535, 255], 2],
         ]
 
         tests.forEach((test) => {

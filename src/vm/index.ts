@@ -301,15 +301,15 @@ export class Vm {
             switch (op) {
                 case Code.OpConstant:
                     
-                    const constIndex = Code.ReadUint16(instructions.slice(ip + 1));
-                    ip += 2;
+                    const constIndex = instructions[ip + 1];
+                    ip += 1;
 
                     this.push(this.constants[constIndex]);
                     break;
                 case Code.OpClosure: {
-                    const constIndex = Code.ReadUint16(instructions.slice(ip + 1));
-                    const numFree = Code.ReadUint8(instructions.slice(ip + 3));
-                    ip += 3;
+                    const constIndex = instructions[ip + 1];
+                    const numFree = instructions[ip + 2];
+                    ip += 2;
                     const err = this.pushClosure(constIndex, numFree);
                     if(err) {
                         return err;
@@ -364,13 +364,13 @@ export class Vm {
                     break;
                 }
                 case Code.OpJump: {
-                    const pos = Code.ReadUint16(instructions.slice(ip + 1));
+                    const pos = instructions[ip + 1];
                     ip = pos - 1; 
                     break;
                 }
                 case Code.OpJumpNotTruthy: {
-                    const pos = Code.ReadUint16(instructions.slice(ip + 1));
-                    ip += 2;
+                    const pos = instructions[ip + 1];
+                    ip += 1;
                     const condition = this.pop();
                     if(!this.isTruthy(condition)) {
                         ip = pos - 1;
@@ -384,16 +384,16 @@ export class Vm {
                     break;
                 }
                 case Code.OpSetGlobal: {
-                    const globalIndex = Code.ReadUint16(instructions.slice(ip + 1));
-                    ip += 2;
+                    const globalIndex = instructions[ip + 1];
+                    ip += 1;
 
                     this.globals[globalIndex] = this.pop();
                     break;
                 }
                 case Code.OpGetGlobal: {
-                    const globalIndex = Code.ReadUint16(instructions.slice(ip + 1));
+                    const globalIndex = instructions[ip + 1];
                     
-                    ip += 2;
+                    ip += 1;
 
                     const err = this.push(this.globals[globalIndex]);
                     if(err) {
@@ -402,8 +402,8 @@ export class Vm {
                     break;
                 }
                 case Code.OpArray: {
-                    const numElements = Code.ReadUint16(instructions.slice(ip + 1));
-                    ip += 2;
+                    const numElements = instructions[ip + 1];
+                    ip += 1;
                     const array = this.buildArray(this.sp - numElements, this.sp);
                     this.sp -= numElements;
                     const err = this.push(array);
@@ -414,8 +414,8 @@ export class Vm {
                     break;
                 }
                 case Code.OpHash: {
-                    const numElements = Code.ReadUint16(instructions.slice(ip+ 1));
-                    ip += 2;
+                    const numElements = instructions[ip+ 1];
+                    ip += 1;
                     const hash = this.buildHash(this.sp - numElements, this.sp);
                     if(hash instanceof Error) {
                         return hash;
@@ -438,7 +438,7 @@ export class Vm {
                     break;
                 }
                 case Code.OpCall: {
-                    const numArgs = Code.ReadUint8(instructions.slice(ip+1));
+                    const numArgs = instructions[ip+1];
                     this.currentFrame().ip++;
 
                     const err = this.executeCall(numArgs);
@@ -471,14 +471,14 @@ export class Vm {
                     continue;
                 }
                 case Code.OpSetLocal: {
-                    const localIndex = Code.ReadUint8(instructions.slice(ip + 1));
+                    const localIndex = instructions[ip + 1];
                     const frame = this.currentFrame();
                     ip++;
                     this.stack[frame.basePointer + localIndex] = this.pop();
                     break;
                 }
                 case Code.OpGetLocal: {
-                    const localindex = Code.ReadUint8(instructions.slice(ip + 1));
+                    const localindex = instructions[ip + 1];
                     const frame = this.currentFrame();
                     ip++;
                     const err = this.push(this.stack[frame.basePointer + localindex]);
@@ -488,7 +488,7 @@ export class Vm {
                     break;
                 }
                 case Code.OpGetBuiltin: {
-                    const builtinIndex = Code.ReadUint8(instructions.slice(ip + 1));
+                    const builtinIndex = instructions[ip + 1];
                     ip++;
 
                     const definition = Object.values(Builtins)[builtinIndex];
@@ -501,7 +501,7 @@ export class Vm {
                     break;
                 }
                 case Code.OpGetFree: {
-                    const freeIndex = Code.ReadUint8(instructions.slice(ip + 1));
+                    const freeIndex = instructions[ip + 1];
                     ip++;
                     const currentClosure = this.currentFrame().cl;
                     const err = this.push(currentClosure.free[freeIndex])

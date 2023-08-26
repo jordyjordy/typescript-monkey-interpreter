@@ -18,7 +18,7 @@ export class Instructions extends Array<number> {
     }
 
     public static formatInstruction(def: Definition, operands: number[]): string {
-        const operandCount = def.operandWidths.length;
+        const operandCount = def.operandCount;
 
         if(operands.length !== operandCount) {
             return `Error: operand length ${operands.length} does not match defined ${operandCount}`;
@@ -80,47 +80,47 @@ export const OpCurrentClosure: Opcode = 29;
 
 export class Definition {
     name: string;
-    operandWidths: number[];
+    operandCount: number
 
-    constructor(name: string, widths: number[]) {
+    constructor(name: string, operandCount: number) {
         this.name = name;
-        this.operandWidths = widths;
+        this.operandCount = operandCount;
     }
 }
 
 const bitmask = 0b11111111
 
 const definitions = {
-    [OpConstant]: new Definition('OpConstant', [2]),
-    [OpAdd]: new Definition('OpAdd', []),
-    [OpPop]: new Definition('OpPop', []),
-    [OpSub]: new Definition('OpSub', []),
-    [OpMul]: new Definition('OpMul', []),
-    [OpDiv]: new Definition('OpDiv', []),
-    [OpTrue]: new Definition('OpTrue', []),
-    [OpFalse]: new Definition('OpFalse', []),
-    [OpEqual]: new Definition('OpEqual', []),
-    [OpNotEqual]: new Definition('OpNotEqual', []),
-    [OpGreaterThan]: new Definition('OpGreaterThan', []),
-    [OpMinus]: new Definition('OpMinus', []),
-    [OpBang]: new Definition('OpBang', []),
-    [OpJumpNotTruthy]: new Definition('OpJumpNotTruthy', [2]),
-    [OpJump]: new Definition('OpJump', [2]),
-    [OpNull]: new Definition('OpNull', []),
-    [OpGetGlobal]: new Definition('OpGetGlobal', [2]),
-    [OpSetGlobal]: new Definition('OpSetGlobal', [2]),
-    [OpArray]: new Definition('OpArray', [2]),
-    [OpHash]: new Definition('OpHash', [2]),
-    [OpIndex]: new Definition('OpIndex', []),
-    [OpCall]: new Definition('OpCall', [1]),
-    [OpReturnValue]: new Definition('OpReturnValue', []),
-    [OpReturn]: new Definition('OpReturn', []),
-    [OpGetLocal]: new Definition('OpGetLocal', [1]), 
-    [OpSetLocal]: new Definition('OpSetLocal', [1]),
-    [OpGetBuiltin]: new Definition('OpGetBuiltin', [1]),
-    [OpClosure]: new Definition('OpClosure', [2, 1]),
-    [OpGetFree]: new Definition('OpGetFree', [1]),
-    [OpCurrentClosure]: new Definition('OpCurrentClosure', []),
+    [OpConstant]: new Definition('OpConstant', 1),
+    [OpAdd]: new Definition('OpAdd', 0),
+    [OpPop]: new Definition('OpPop', 0),
+    [OpSub]: new Definition('OpSub', 0),
+    [OpMul]: new Definition('OpMul', 0),
+    [OpDiv]: new Definition('OpDiv', 0),
+    [OpTrue]: new Definition('OpTrue', 0),
+    [OpFalse]: new Definition('OpFalse', 0),
+    [OpEqual]: new Definition('OpEqual', 0),
+    [OpNotEqual]: new Definition('OpNotEqual', 0),
+    [OpGreaterThan]: new Definition('OpGreaterThan', 0),
+    [OpMinus]: new Definition('OpMinus', 0),
+    [OpBang]: new Definition('OpBang', 0),
+    [OpJumpNotTruthy]: new Definition('OpJumpNotTruthy', 1),
+    [OpJump]: new Definition('OpJump', 1),
+    [OpNull]: new Definition('OpNull', 0),
+    [OpGetGlobal]: new Definition('OpGetGlobal', 1),
+    [OpSetGlobal]: new Definition('OpSetGlobal', 1),
+    [OpArray]: new Definition('OpArray', 1),
+    [OpHash]: new Definition('OpHash', 1),
+    [OpIndex]: new Definition('OpIndex', 0),
+    [OpCall]: new Definition('OpCall', 1),
+    [OpReturnValue]: new Definition('OpReturnValue', 0),
+    [OpReturn]: new Definition('OpReturn', 0),
+    [OpGetLocal]: new Definition('OpGetLocal', 1), 
+    [OpSetLocal]: new Definition('OpSetLocal', 1),
+    [OpGetBuiltin]: new Definition('OpGetBuiltin', 1),
+    [OpClosure]: new Definition('OpClosure', 2),
+    [OpGetFree]: new Definition('OpGetFree', 1),
+    [OpCurrentClosure]: new Definition('OpCurrentClosure', 0),
 }
 
 export function Lookup(op: number) {
@@ -148,47 +148,23 @@ export function Make(op: Opcode, ...operands: number[]): Instructions {
     if(!definition) {
         return new Instructions();
     }
-    let instructionLength = 1;
-    definition.operandWidths.forEach((num) => instructionLength += num);
+    let instructionLength = 1 + definition.operandCount;
     const instruction = new Instructions(instructionLength);
     instruction[0] = op;
     let offSet = 1;
     for(let i = 0; i < operands.length; i++) {
-        const width = definition.operandWidths[i];
-        switch(width) {
-            case 2:
-                instruction.splice(offSet, 2, ...getBytes(operands[i], 2));
-                break;
-            case 1:
-                instruction.splice(offSet, 1, ...getBytes(operands[i], 1));
-                break;
-        }
-        offSet += width;
+        instruction.splice(offSet, 1, operands[i])
+        offSet += 1;
     }
     return instruction;
 }
 
 export function ReadOperands(def: Definition, instructions: Instructions): [number[], number] {
-    const operands = new Array<number>(def.operandWidths.length);
+    const operands = new Array<number>(def.operandCount);
     let offset = 0;
-    def.operandWidths.forEach((width, index) => {
-        switch (width) {
-            case 2:
-                operands[index] = ReadUint16(instructions.slice(offset, offset + 2));
-                break;
-            case 1:
-                operands[index] = ReadUint8(instructions.slice(offset, offset + 1));
-                break;
-        }
-        offset += width;
-    })
+    for(let i = 0; i < def.operandCount; i++) {
+        operands[i] = instructions[i];
+        offset++;
+    }
     return [operands, offset];
-}
-
-export function ReadUint8(instructions: Instructions): number {
-    return getNumber(instructions, 1);
-}
-
-export function ReadUint16(instructions: Instructions): number {
-    return getNumber(instructions, 2);
 }
