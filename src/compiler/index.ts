@@ -454,7 +454,7 @@ export class Compiler {
 
     leaveScope() {
         const instructions = this.currentInstructions();
-        this.symbolTable = (this.symbolTable as EnclosedSymbolTable).parentTable;
+        this.symbolTable = (this.symbolTable as EnclosedSymbolTable).parentTable!;
         this.scopes.pop();
         this.scopeIndex--;
 
