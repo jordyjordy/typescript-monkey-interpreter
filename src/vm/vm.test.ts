@@ -75,7 +75,6 @@ function runVmTests(tests: vmTestCase[]) {
         try {
             testExpectedObject(test.expected, stackElement)
         } catch (err) {
-            console.log(test);
             throw err;
         }
     })

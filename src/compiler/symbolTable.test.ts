@@ -1,4 +1,4 @@
-import { GlobalScope, SSymbol, SymbolTable, LocalScope, EnclosedSymbolTable, BuiltinScope } from './symbolTable';
+import { GlobalScope, SSymbol, SymbolTable, LocalScope, EnclosedSymbolTable, BuiltinScope, FreeScope } from './symbolTable';
 
 describe("symbol table tests", () => {
     test('define', () => {
@@ -136,6 +136,98 @@ describe("symbol table tests", () => {
                 const res = table.resolve(sym.name);
                 expect(res).toEqual(sym);
             })
+        })
+    })
+
+    test('resolve free', () => {
+        const global = new SymbolTable();
+        const a = global.define("a");
+        const b = global.define("b");
+
+        const local = new EnclosedSymbolTable(global);
+        const c = local.define('c');
+        const d =local.define('d');
+
+
+        const secondLocal = new EnclosedSymbolTable(local);
+        const e =secondLocal.define('e');
+        const f =secondLocal.define('f');
+
+        const tests: [SymbolTable, SSymbol[], SSymbol[]][] = [
+            [
+                local,
+                [
+                    new SSymbol('a', GlobalScope, 0),
+                    new SSymbol('b', GlobalScope, 1),
+                    new SSymbol('c', LocalScope, 0),
+                    new SSymbol('d', LocalScope, 1),
+                ],
+                []
+            ],
+            [
+                secondLocal,
+                [
+                    new SSymbol('a', GlobalScope, 0),
+                    new SSymbol('b', GlobalScope, 1),
+                    new SSymbol('c', FreeScope, 0),
+                    new SSymbol('d', FreeScope, 1),
+                    new SSymbol('e', LocalScope, 0),
+                    new SSymbol('f', LocalScope, 1),
+                ],
+                [
+                    new SSymbol('c', LocalScope, 0),
+                    new SSymbol('d', LocalScope, 1),
+                ]
+            ],
+        ];
+        tests.forEach((test) => {
+            test[1].forEach((sym) => {
+                const res = test[0].resolve(sym.name);
+                expect(res).toBeDefined();
+                expect(res).toEqual(sym);
+            })
+
+            expect(test[0].freeSymbols.length).toEqual(test[2].length);
+
+            test[2].forEach((sym, i) => {
+                const res = test[0].freeSymbols[i];
+                expect(res).toEqual(sym);
+            })
+        });
+    })
+
+    test('unresolvable free', () => {
+        const global = new SymbolTable();
+        global.define("a");
+
+        const local = new EnclosedSymbolTable(global);
+        local.define('c');
+
+        const secondLocal = new EnclosedSymbolTable(local);
+        secondLocal.define('e');
+        secondLocal.define('f');
+
+        const expected = [
+            new SSymbol('a', GlobalScope, 0),
+            new SSymbol('c', FreeScope, 0),
+            new SSymbol('e', LocalScope, 0),
+            new SSymbol('f', LocalScope, 1),
+        ]
+
+        expected.forEach((sym) => {
+            const res = secondLocal.resolve(sym.name);
+            expect(res).toBeDefined();
+            expect(res).toEqual(sym);
+        })
+
+        const expectUnresolvable = [
+            "b",
+            "d"
+        ];
+
+        expectUnresolvable.forEach((name) => {
+            const res = secondLocal.resolve(name);
+            expect(res).toBeUndefined();
         })
     })
 })

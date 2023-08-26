@@ -4,7 +4,7 @@ import Lexer from "../lexer";
 import * as Obj from "../object";
 import Builtins from "../object/builtins";
 import { Parser } from "../parser";
-import { BuiltinScope, EnclosedSymbolTable, GlobalScope, LocalScope, SSymbol, SymbolTable } from "./symbolTable";
+import { BuiltinScope, EnclosedSymbolTable, FreeScope, GlobalScope, LocalScope, SSymbol, SymbolTable } from "./symbolTable";
 
 export class Bytecode {
     instructions: Code.Instructions;
@@ -77,6 +77,9 @@ export class Compiler {
             case BuiltinScope:
                 this.emit(Code.OpGetBuiltin, symbol.index);
                 break;
+            case FreeScope:
+                this.emit(Code.OpGetFree, symbol.index);
+                break
         }
     }
 
@@ -322,13 +325,18 @@ export class Compiler {
                 if(!this.lastInstructionIs(Code.OpReturnValue)) {
                     this.emit(Code.OpReturn);
                 }
+
+                const freeSymbols = this.symbolTable.freeSymbols;
                 const numLocals = this.symbolTable.numDefinitions;
                 const instructions = this.leaveScope();
                 
+                freeSymbols.forEach(freeSymbol => {
+                    this.loadSymbol(freeSymbol);
+                })
                 const compiledFunction = new Obj.CompiledFunction(instructions, numLocals, funcLit.parameters.length);
                 const fnIndex =  this.addConstant(compiledFunction)
 
-                this.emit(Code.OpClosure, fnIndex, 0);
+                this.emit(Code.OpClosure, fnIndex, freeSymbols.length);
                 break;
             }
             case Ast.ReturnStatement: {

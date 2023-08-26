@@ -3,6 +3,7 @@ type SymbolScope = string;
 export const GlobalScope: SymbolScope = "GLOBAL";
 export const LocalScope: SymbolScope = "LOCAL";
 export const BuiltinScope: SymbolScope = "BUILTIN";
+export const FreeScope: SymbolScope = "FREE";
 export class SSymbol {
     name: string;
     scope: SymbolScope;
@@ -18,9 +19,11 @@ export class SSymbol {
 export class SymbolTable {
     store: Record<string, SSymbol>;
     numDefinitions: number;
-
+    freeSymbols: SSymbol[];
+    parentTable: SymbolTable | undefined;
     constructor() {
         this.store = {};
+        this.freeSymbols = [];
         this.numDefinitions = 0;
     }
 
@@ -30,6 +33,13 @@ export class SymbolTable {
         this.numDefinitions++;
         return symbol; 
     }
+
+    defineFree(original: SSymbol) {
+        this.freeSymbols.push(original);
+        const symbol = new SSymbol(original.name, FreeScope, this.freeSymbols.length - 1);
+        this.store[original.name] = symbol;
+        return symbol;
+    }
     
     defineBuiltIn(index: number, name: string) {
         const symbol = new SSymbol(name, BuiltinScope, index);
@@ -37,17 +47,26 @@ export class SymbolTable {
         return symbol;
     }
 
-    resolve(name: string): SSymbol {
-        return this.store[name];
+    resolve(name: string): SSymbol | undefined {
+        const res = this.store[name];
+        if(res) {
+            return res;
+        }
+        if(this.parentTable) {
+            const parentRes = this.parentTable.resolve(name);
+            if(!parentRes || (parentRes.scope === GlobalScope || parentRes.scope === BuiltinScope)) {
+                return parentRes;
+            }
+            const free = this.defineFree(parentRes);
+            return free;
+        }
     }
 }
 
 export class EnclosedSymbolTable extends SymbolTable {
-    parentTable: SymbolTable;
-
     constructor(parentTable: SymbolTable) {
         super();
-        this.parentTable =parentTable;
+        this.parentTable = parentTable;
     }
 
     define(name: string): SSymbol {
@@ -55,9 +74,5 @@ export class EnclosedSymbolTable extends SymbolTable {
         this.store[name] = symbol;
         this.numDefinitions++;
         return symbol;
-    }
-
-    resolve(name: string): SSymbol {
-        return this.store[name] ?? this.parentTable.resolve(name);
     }
 }
