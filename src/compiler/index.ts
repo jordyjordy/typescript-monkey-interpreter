@@ -301,10 +301,10 @@ export class Compiler {
                 if(!this.lastInstructionIs(Code.OpReturnValue)) {
                     this.emit(Code.OpReturn);
                 }
-
+                const numLocals = this.symbolTable.numDefinitions;
                 const instructions = this.leaveScope();
-
-                const compiledFunction = new Obj.CompiledFunction(instructions);
+                
+                const compiledFunction = new Obj.CompiledFunction(instructions, numLocals);
                 this.emit(Code.OpConstant, this.addConstant(compiledFunction));
                 break;
             }

@@ -3,6 +3,7 @@ import * as Code from "../code";
 import { Bytecode } from "../compiler";
 import { FALSE, NULL, TRUE } from "../evaluator";
 import { Boolean } from "../ast";
+import { loadOptions } from "@babel/core";
 
 const stackSize = 2048;
 
@@ -15,9 +16,12 @@ export class Frame {
 
     ip: number;
 
-    constructor(fn: Obj.CompiledFunction) {
+    basePointer: number;
+
+    constructor(fn: Obj.CompiledFunction, basePointer: number) {
         this.fn = fn;
         this.ip = -1;
+        this.basePointer = basePointer;
     }
 
     instructions() {
@@ -38,7 +42,7 @@ export class Vm {
     constructor(bytecode: Bytecode) {
         this.frames = new Array<Frame>(maxFrames)
 
-        this.frames[0] = new Frame(new Obj.CompiledFunction(bytecode.instructions));
+        this.frames[0] = new Frame(new Obj.CompiledFunction(bytecode.instructions, 0), 0);
         this.framesIndex = 1;
         this.constants = bytecode.constants;
 
@@ -381,15 +385,17 @@ export class Vm {
                     if(!(fn instanceof Obj.CompiledFunction)) {
                         return new Error('calling non-function');
                     }
-                    this.currentFrame().ip
-                    this.pushFrame(new Frame(fn));
+
+                    const frame = new Frame(fn, this.sp)
+                    this.pushFrame(frame);
+                    this.sp = frame.basePointer + fn.numLocals;
                     // continue because we do not want to update the current frames ip
                     continue;
                 }
                 case Code.OpReturnValue: {
                     const returnVal = this.pop();
-                    this.popFrame();
-                    this.pop();
+                    const frame = this.popFrame();
+                    this.sp = frame.basePointer - 1;
                     const err = this.push(returnVal);
                     if(err) {
                         return err;
@@ -398,14 +404,32 @@ export class Vm {
                     continue;
                 }
                 case Code.OpReturn: {
-                    this.popFrame();
                     this.pop();
+                    const frame = this.popFrame();
+                    this.sp = frame.basePointer - 1;
                     const err = this.push(NULL);
                     if(err) {
                         return err;
                     }
                     // continue because we do not want to update the current frames ip
                     continue;
+                }
+                case Code.OpSetLocal: {
+                    const localIndex = Code.ReadUint8(instructions.slice(ip + 1));
+                    const frame = this.currentFrame();
+                    ip++;
+                    this.stack[frame.basePointer + localIndex] = this.pop();
+                    break;
+                }
+                case Code.OpGetLocal: {
+                    const localindex = Code.ReadUint8(instructions.slice(ip + 1));
+                    const frame = this.currentFrame();
+                    ip++;
+                    const err = this.push(this.stack[frame.basePointer + localindex]);
+                    if(err) {
+                        return err;
+                    }
+                    break;
                 }
                 case Code.OpPop:
                     this.pop();

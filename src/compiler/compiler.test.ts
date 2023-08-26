@@ -705,6 +705,39 @@ describe('compiler tests', () => {
         ];
         runCompilerTests(tests);
     })
+
+    test('functions with bindings', () => {
+        const tests = [
+            {
+                input: `
+                let one = fn() { let one = 1; one };
+                one();
+                `,
+                expectedConstants: [
+                    1,
+                    [
+                        // 0000
+                        code.Make(code.OpConstant, 0),
+                        // 0003
+                        code.Make(code.OpSetLocal, 0),
+                        // 0005
+                        code.Make(code.OpGetLocal, 0),
+                        // 0007
+                        code.Make(code.OpReturnValue),
+                    ]
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 1),
+                    code.Make(code.OpSetGlobal, 0),
+                    code.Make(code.OpGetGlobal, 0),
+                    code.Make(code.OpCall),
+                    code.Make(code.OpPop),
+                ],
+                
+            },
+        ];
+        runCompilerTests(tests);
+    })
 })
 
 

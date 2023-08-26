@@ -176,10 +176,7 @@ export function ReadOperands(def: Definition, instructions: Instructions): [numb
 }
 
 export function ReadUint8(instructions: Instructions): number {
-    console.log(instructions);
-    const num =  getNumber(instructions, 1);
-    console.log(num);
-    return num;
+    return getNumber(instructions, 1);
 }
 
 export function ReadUint16(instructions: Instructions): number {
