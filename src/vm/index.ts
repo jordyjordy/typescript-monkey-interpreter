@@ -376,6 +376,27 @@ export class Vm {
 
                     break;
                 }
+                case Code.OpCall: {
+                    const fn = this.stack[this.sp - 1];
+                    if(!(fn instanceof Obj.CompiledFunction)) {
+                        return new Error('calling non-function');
+                    }
+                    this.currentFrame().ip
+                    this.pushFrame(new Frame(fn));
+                    // continue because we do not want to update the current frames ip
+                    continue;
+                }
+                case Code.OpReturnValue: {
+                    const returnVal = this.pop();
+                    this.popFrame();
+                    this.pop();
+                    const err = this.push(returnVal);
+                    if(err) {
+                        return err;
+                    }
+                    // continue because we do not want to update the current frames ip
+                    continue;
+                }
                 case Code.OpPop:
                     this.pop();
                     break;

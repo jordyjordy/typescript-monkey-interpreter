@@ -122,7 +122,7 @@ class CompiledFunction implements Obj {
     }
 
     inspect() {
-        return this.toString();
+        return this.instructions.toString();
     }
 }
 

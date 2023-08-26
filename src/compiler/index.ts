@@ -235,6 +235,7 @@ export class Compiler {
                 if(!symbol) {
                     return new Error(`undefined variable: ${identifier.value}`);
                 }
+
                 this.emit(Code.OpGetGlobal, symbol.index);
                 break;
             }

@@ -71,8 +71,11 @@ function runVmTests(tests: vmTestCase[]) {
         expect(vmError).toBeUndefined();
 
         const stackElement = vm.lastPoppedStackElem();
-
-        testExpectedObject(test.expected, stackElement);
+        try {
+            testExpectedObject(test.expected, stackElement)
+        } catch (err) {
+            throw err;
+        }
     })
 }
 
@@ -88,17 +91,17 @@ function testExpectedObject(expected: any, actual?: Obj.Obj) {
             if (expected === null) {
                 expect(actual).toEqual(NULL);
             }
-            if(Array.isArray(expected)) {
+            if (Array.isArray(expected)) {
                 testArrayObject(expected, actual);
             }
-            if(expected instanceof Map) {
+            if (expected instanceof Map) {
                 testHashObject(expected, actual);
             }
             break;
         case 'string':
             testStringObject(expected, actual);
             break;
-        
+
     }
 }
 
@@ -198,9 +201,9 @@ describe('vm tests', () => {
 
     test('array literals', () => {
         const tests: vmTestCase[] = [
-            { input:  "[]", expected: []},
-            { input:  "[1, 2, 3]", expected: [1, 2, 3]},
-            { input:  "[1 + 2, 3 * 4, 5 + 6]", expected:[3, 12, 11]},
+            { input: "[]", expected: [] },
+            { input: "[1, 2, 3]", expected: [1, 2, 3] },
+            { input: "[1 + 2, 3 * 4, 5 + 6]", expected: [3, 12, 11] },
         ];
 
         runVmTests(tests);
@@ -236,7 +239,7 @@ describe('vm tests', () => {
                         16
                     ]
                 ]),
-            },      
+            },
         ];
         runVmTests(tests);
     })
@@ -253,6 +256,52 @@ describe('vm tests', () => {
             { input: "{1: 1, 2: 2}[2]", expected: 2 },
             { input: "{1: 1}[0]", expected: null },
             { input: "{}[0]", expected: null },
+        ];
+
+        runVmTests(tests);
+    })
+
+    test('function calls without arguments', () => {
+        const tests: vmTestCase[] = [
+            {
+                input: `
+                let fivePlusTen = fn() { 5 + 10; };
+                fivePlusTen();
+                `,
+                expected: 15,
+            },
+            {
+                input: `
+                let one = fn() { 1; };
+                let two = fn() { 2; };
+                one() + two()
+                `,
+                expected: 3,
+            },
+            {
+                input: `
+                let a = fn() { 1 };
+                let b = fn() { a() + 1 };
+                let c = fn() { b() + 1 };
+                c();
+                `,
+                expected: 3,
+            },
+            {
+                input: `
+                let earlyExit = fn() { return 99; 100; };
+                earlyExit();
+                `,
+                expected: 99,
+            },
+            {
+                input: `
+                let earlyExit = fn() { return 99; return 100; };
+                earlyExit();
+                `,
+                expected: 99,
+            },
+
         ];
 
         runVmTests(tests);
