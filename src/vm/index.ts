@@ -6,19 +6,40 @@ import { Boolean } from "../ast";
 
 const stackSize = 2048;
 
+const maxFrames = 1024;
+
 export const globalSize = 65536;
 
+export class Frame {
+    fn: Obj.CompiledFunction;
+
+    ip: number;
+
+    constructor(fn: Obj.CompiledFunction) {
+        this.fn = fn;
+        this.ip = -1;
+    }
+
+    instructions() {
+        return this.fn.instructions;
+    }
+}
 
 export class Vm {
     constants: Obj.Obj[];
-    instructions: Code.Instructions;
     globals: Obj.Obj[];
 
     stack: Obj.Obj[];
-    sp: number;
+    sp: number
+
+    frames: Frame[];
+    framesIndex: number;
 
     constructor(bytecode: Bytecode) {
-        this.instructions = bytecode.instructions;
+        this.frames = new Array<Frame>(maxFrames)
+
+        this.frames[0] = new Frame(new Obj.CompiledFunction(bytecode.instructions));
+        this.framesIndex = 1;
         this.constants = bytecode.constants;
 
         this.globals = new Array(globalSize);
@@ -31,6 +52,20 @@ export class Vm {
         const vm = new Vm(byteCode);
         vm.globals = s;
         return vm;
+    }
+
+    currentFrame() {
+        return this.frames[this.framesIndex - 1];
+    }
+
+    pushFrame(f: Frame) {
+        this.frames[this.framesIndex] = f;
+        this.framesIndex++;
+    }
+
+    popFrame() {
+        this.framesIndex--;
+        return this.frames[this.framesIndex];
     }
 
     stackTop(): Obj.Obj | undefined {
@@ -207,13 +242,15 @@ export class Vm {
     }
 
     run(): Error | void {
-        
-        for(let ip = 0; ip < this.instructions.length; ip++) {
-            const op = this.instructions[ip] as Code.Opcode;
+        while(this.currentFrame().ip < this.currentFrame().instructions().length - 1) {
+            this.currentFrame().ip++;
+            let ip = this.currentFrame().ip
+            const instructions = this.currentFrame().instructions();
+            const op: Code.Opcode = instructions[ip] as Code.Opcode;
             switch (op) {
                 case Code.OpConstant:
                     
-                    const constIndex = Code.ReadUint16(this.instructions.slice(ip + 1));
+                    const constIndex = Code.ReadUint16(instructions.slice(ip + 1));
                     ip += 2;
 
                     this.push(this.constants[constIndex]);
@@ -266,12 +303,12 @@ export class Vm {
                     break;
                 }
                 case Code.OpJump: {
-                    const pos = Code.ReadUint16(this.instructions.slice(ip + 1));
+                    const pos = Code.ReadUint16(instructions.slice(ip + 1));
                     ip = pos - 1; 
                     break;
                 }
                 case Code.OpJumpNotTruthy: {
-                    const pos = Code.ReadUint16(this.instructions.slice(ip + 1));
+                    const pos = Code.ReadUint16(instructions.slice(ip + 1));
                     ip += 2;
                     const condition = this.pop();
                     if(!this.isTruthy(condition)) {
@@ -286,14 +323,14 @@ export class Vm {
                     break;
                 }
                 case Code.OpSetGlobal: {
-                    const globalIndex = Code.ReadUint16(this.instructions.slice(ip + 1));
+                    const globalIndex = Code.ReadUint16(instructions.slice(ip + 1));
                     ip += 2;
 
                     this.globals[globalIndex] = this.pop();
                     break;
                 }
                 case Code.OpGetGlobal: {
-                    const globalIndex = Code.ReadUint16(this.instructions.slice(ip + 1));
+                    const globalIndex = Code.ReadUint16(instructions.slice(ip + 1));
                     
                     ip += 2;
 
@@ -304,7 +341,7 @@ export class Vm {
                     break;
                 }
                 case Code.OpArray: {
-                    const numElements = Code.ReadUint16(this.instructions.slice(ip + 1));
+                    const numElements = Code.ReadUint16(instructions.slice(ip + 1));
                     ip += 2;
                     const array = this.buildArray(this.sp - numElements, this.sp);
                     this.sp -= numElements;
@@ -316,7 +353,7 @@ export class Vm {
                     break;
                 }
                 case Code.OpHash: {
-                    const numElements = Code.ReadUint16(this.instructions.slice(ip+ 1));
+                    const numElements = Code.ReadUint16(instructions.slice(ip+ 1));
                     ip += 2;
                     const hash = this.buildHash(this.sp - numElements, this.sp);
                     if(hash instanceof Error) {
@@ -343,6 +380,7 @@ export class Vm {
                     this.pop();
                     break;
             }
+            this.currentFrame().ip = ip;
         }
     }
 

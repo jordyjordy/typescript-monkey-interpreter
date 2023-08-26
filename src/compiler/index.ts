@@ -291,8 +291,12 @@ export class Compiler {
                 if(this.lastInstructionIs(Code.OpPop)) {
                     this.replaceLastPopWithReturn();
                 }
+                if(!this.lastInstructionIs(Code.OpReturnValue)) {
+                    this.emit(Code.OpReturn);
+                }
+
                 const instructions = this.leaveScope();
-                
+
                 const compiledFunction = new Obj.CompiledFunction(instructions);
                 this.emit(Code.OpConstant, this.addConstant(compiledFunction));
                 break;
@@ -304,6 +308,15 @@ export class Compiler {
                     return err;
                 }
                 this.emit(Code.OpReturnValue);
+                break;
+            }
+            case Ast.CallExpression: {
+                const callExpr = node as Ast.CallExpression;
+                const error = this.compile(callExpr.func!);
+                if(error) {
+                    return error
+                }
+                this.emit(Code.OpCall);
                 break;
             }
             case Ast.BlockStatement: {
@@ -352,7 +365,7 @@ export class Compiler {
     lastInstructionIs(op: Code.Opcode): boolean {
         return this.currentInstructions().length === 0
             ? false
-            :this.scopes[this.scopeIndex].lastInstruction.OpCode === op;
+            : this.scopes[this.scopeIndex].lastInstruction.OpCode === op;
     }
     
     removeLastPop() {

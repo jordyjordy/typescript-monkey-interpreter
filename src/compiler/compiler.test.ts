@@ -527,7 +527,7 @@ describe('compiler tests', () => {
         expect(compiler.scopeIndex).toBe(1);
         compiler.emit(code.OpSub);
         expect(compiler.scopes[compiler.scopeIndex].instructions.length).toBe(1);
-    
+
         let last = compiler.scopes[compiler.scopeIndex].lastInstruction;
         expect(last?.OpCode).toEqual(code.OpSub);
         compiler.leaveScope();
@@ -541,6 +541,66 @@ describe('compiler tests', () => {
         const previous = compiler.scopes[compiler.scopeIndex].previousInstruction;
         expect(previous?.OpCode).toEqual(code.OpMul);
 
+    })
+
+    test('functions without return value', () => {
+        const tests = [
+            {
+                input: `fn() { }`,
+                expectedConstants: [
+                    [
+                        code.Make(code.OpReturn),
+                    ],
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 0),
+                    code.Make(code.OpPop),
+                ],
+            },
+        ]
+
+        runCompilerTests(tests);
+    })
+
+    test('function calls', () => {
+        const tests = [
+            {
+                input: `fn() { 24 }();`,
+                expectedConstants: [
+                    24,
+                    [
+                        code.Make(code.OpConstant, 0), // The literal "24"
+                        code.Make(code.OpReturnValue),
+                    ],
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 1), // The compiled function
+                    code.Make(code.OpCall),
+                    code.Make(code.OpPop),
+                ],
+            },
+            {
+                input: `
+                let noArg = fn() { 24 };
+                noArg();
+                `,
+                expectedConstants: [
+                    24,
+                    [
+                        code.Make(code.OpConstant, 0), // The literal "24"
+                        code.Make(code.OpReturnValue),
+                    ],
+                ],
+                expectedInstructions: [
+                    code.Make(code.OpConstant, 1), // The compiled function
+                    code.Make(code.OpSetGlobal, 0),
+                    code.Make(code.OpGetGlobal, 0),
+                    code.Make(code.OpCall),
+                    code.Make(code.OpPop),
+                ],
+            }
+        ];
+        runCompilerTests(tests);
     })
 })
 
@@ -583,7 +643,7 @@ const testConstants = (expected: any[], actual: obj.Obj[]) => {
                 testStringObject(constant, actual[i]);
                 break;
             case 'object':
-                if(constant instanceof Array) {
+                if (constant instanceof Array) {
                     expect(actual[i] instanceof obj.CompiledFunction).toBe(true);
                     const error = testInstructions(constant, (actual[i] as obj.CompiledFunction).instructions)
                 }
